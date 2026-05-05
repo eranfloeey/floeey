@@ -1,23 +1,42 @@
-# Floeey — Landing Pages
+# Floeey - Landing Pages + Admin
 
-עמודי נחיתה לסוכן הקולי של פלואי. סטטי לחלוטין (HTML/CSS/JS), נפרס על Vercel.
-
-## מבנה
-
-- `index.html` — עמוד הנחיתה הראשי (קמפיין "מנחם")
-- `styles.css` — עיצוב, צבעי מותג, פונט מונופולי
-- `assets/fonts/` — FbMonopoly (עברית, 5 משקלים)
-- `assets/img/` — לוגו ונכסים גרפיים
-- `reference/` — נכסי קמפיין לעיון בלבד (לא חלק מהאתר)
-- `vercel.json` — cache headers לפונטים ונכסים
+Next.js 14 (App Router) על Vercel. כולל LP, מערכת לידים, A/B test, ופיקסלים.
 
 ## פיתוח לוקאלי
 
 ```bash
-python3 -m http.server 8080
+npm install
+npm run dev
 ```
-פתח: http://localhost:8080
+- LP: http://localhost:3000
+- אדמין: http://localhost:3000/admin (סיסמה ברירת מחדל: `123123123`)
 
-## פריסה
+ב-dev בלי DATABASE_URL, נתונים נשמרים ב-`data/local.json` (לא נכנס לגיט).
 
-מחובר ל-Vercel — כל push ל-`main` נפרס אוטומטית.
+## משתני סביבה (Production)
+
+```
+POSTGRES_URL=...           # מ-Vercel Postgres / Neon
+ADMIN_PASSWORD=123123123   # סיסמת אדמין
+ADMIN_SECRET=...            # סוד לחתימת cookies (32+ תווים)
+```
+
+## פריסה ל-Vercel
+
+1. `vercel link` בתיקייה
+2. ב-Vercel Dashboard: Storage → Create → Postgres → Connect
+3. הגדר `ADMIN_PASSWORD` ו-`ADMIN_SECRET` ב-Environment Variables
+4. `git push` → פריסה אוטומטית
+
+## מבנה
+
+- `app/page.tsx` — LP. בוחר variant לפי cookie.
+- `app/admin/*` — דשבורד ניהול (לידים / A/B / פיקסלים)
+- `app/api/*` — endpoints
+- `components/` — Hero, LeadModal, StaticSections, LandingPage
+- `lib/db.ts` — שכבת נתונים (Postgres + JSON-fallback)
+- `lib/auth.ts` — auth ב-cookie חתום (jose JWT)
+- `lib/data.ts` — server-only helpers (variants, pixels)
+- `lib/copy.ts` — ברירות מחדל קופי משותפות (server+client)
+- `middleware.ts` — מקצה `floeey_uid` cookie לכל מבקר חדש
+- `public/img`, `public/fonts` — נכסים סטטיים
