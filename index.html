@@ -131,7 +131,14 @@
   <div class="modal" id="leadModal" role="dialog" aria-modal="true" aria-labelledby="leadTitle" aria-hidden="true">
     <div class="modal-card">
       <button class="modal-close" data-close-modal aria-label="סגור">×</button>
-      <h3 id="leadTitle">בעוד 30 שניות <span class="m">מנחם</span> איתך על הקו</h3>
+      <h3 id="leadTitle">
+        <span class="line">בעוד 30 שניות בדיוק</span>
+        <span class="line line-with-img">
+          <span class="m">מנחם</span>
+          <img class="inline-menachem" src="assets/img/menachem-linkedin.png" alt="" aria-hidden="true" />
+        </span>
+        <span class="line">איתך על הקו</span>
+      </h3>
       <p class="small">זה לא איום. זו הבטחה.</p>
       <form id="leadForm" onsubmit="return handleSubmit(event)">
         <label for="name">שם מלא</label>
