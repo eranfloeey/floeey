@@ -319,6 +319,28 @@ section.block.alt { background: var(--bg-soft); }
 .step h4 { font-weight: 700; font-size: 22px; margin: 14px 0 10px; }
 .step p { color: var(--text-muted); font-size: 16px; }
 
+/* Step 3 — Menachem peeks from the top-left corner */
+.step-featured { overflow: visible; }
+.step-character {
+  position: absolute;
+  top: -55%;
+  left: -18%;
+  width: 78%;
+  z-index: 4;
+  pointer-events: none;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.55));
+  transform-origin: 30% 80%;
+  animation: peek-sway 5.4s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes peek-sway {
+  0%, 100% { transform: rotate(-2deg) translateY(0); }
+  50%      { transform: rotate(2deg)  translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step-character { animation: none; }
+}
+
 .final-cta {
   padding: 100px 0; text-align: center;
   background:
@@ -468,6 +490,12 @@ footer {
 @media (max-width: 480px) {
   .benefits { grid-template-columns: 1fr; }
   .modal-card { padding: 32px 22px 24px; }
+}
+
+/* Step 3 character: keep peek modest on mobile so it doesn't collide with step 2 above */
+@media (max-width: 880px) {
+  .step-character { top: -28%; left: -10%; width: 50%; }
+  .step-featured { padding-top: 60px; }
 }
 
 /* keep the hero compact on short screens */
