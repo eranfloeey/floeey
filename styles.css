@@ -415,6 +415,13 @@ footer {
   .hero p.lead { font-size: 15px; line-height: 1.4; margin: 0 auto 10px; max-width: 380px; }
   .hero-cta { padding: 12px 26px; font-size: 16px; }
   .menachem { max-width: min(78vw, 380px); }
+  /* Flyer: anchor to viewport units on mobile so tall stacked-card sections don't
+     reveal him too early. */
+  .flyer {
+    width: clamp(180px, 52vw, 300px);
+    right:  calc(-55vw + var(--p) * 165vw);
+    bottom: calc(-32vh + var(--p) * 125vh);
+  }
   .benefits { grid-template-columns: repeat(2, 1fr); }
   .steps { grid-template-columns: 1fr; gap: 32px; }
   section.block { padding: 70px 0; }
