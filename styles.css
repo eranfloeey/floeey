@@ -204,42 +204,6 @@ button { font-family: inherit; }
   .menachem, .hero-art::before { animation: none; }
 }
 
-/* ===== Water reveal (load-only) =====
-   Layered SVG waves cover the hero until ~2s after load, then crest and recede. */
-.water {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-  animation: water-recede 2.4s cubic-bezier(0.42, 0, 0.2, 1) 2s forwards;
-}
-.water .wave {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  will-change: transform;
-}
-.water .wave-1 { fill: #1a4fc7; opacity: 0.92; animation: drift-a 4.8s ease-in-out infinite; }
-.water .wave-2 { fill: #2f74e0; opacity: 0.88; animation: drift-b 5.6s ease-in-out infinite; }
-.water .wave-3 { fill: #4ea2ea; opacity: 0.82; animation: drift-c 4.2s ease-in-out infinite; }
-.water .wave-4 { fill: #6dc8ee; opacity: 0.78; animation: drift-d 6.1s ease-in-out infinite; }
-
-@keyframes drift-a { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-22px); } }
-@keyframes drift-b { 0%,100% { transform: translateX(0); } 50% { transform: translateX(18px); } }
-@keyframes drift-c { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-14px); } }
-@keyframes drift-d { 0%,100% { transform: translateX(0); } 50% { transform: translateX(20px); } }
-
-@keyframes water-recede {
-  0%   { transform: translateY(0);     opacity: 1; }
-  18%  { transform: translateY(-22px); opacity: 1; }    /* crest up like a beach wave */
-  100% { transform: translateY(115%);  opacity: 0; }    /* pull back & fade */
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .water { display: none; }
-}
-
 /* ===== Sections below ===== */
 section.block { padding: 90px 0; }
 section.block.alt { background: var(--bg-soft); }
@@ -331,7 +295,7 @@ section.block.alt { background: var(--bg-soft); }
 }
 .step-character {
   position: absolute;
-  top: -55%;
+  top: -75%;
   left: -14%;
   width: 55%;
   z-index: 1;                           /* below the card -> card edge clips him */
@@ -430,8 +394,8 @@ footer {
   transition: background 0.15s ease, color 0.15s ease;
 }
 .modal-close:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
-.modal-card h3 { font-weight: 800; font-size: 26px; margin-bottom: 8px; }
-.modal-card .small { color: var(--text-muted); font-size: 15px; margin-bottom: 22px; }
+.modal-card h3 { font-weight: 800; font-size: 26px; margin-bottom: 8px; text-align: center; }
+.modal-card .small { color: var(--text-muted); font-size: 15px; margin-bottom: 22px; text-align: center; }
 .modal-card label {
   display: block; font-size: 14px;
   color: var(--text-muted); margin-bottom: 6px;
@@ -502,7 +466,7 @@ footer {
 
 /* Step 3 character: keep peek modest on mobile so it doesn't collide with step 2 above */
 @media (max-width: 880px) {
-  .step-character { top: -28%; left: -8%; width: 38%; }
+  .step-character { top: -42%; left: -8%; width: 38%; }
 }
 
 /* keep the hero compact on short screens */
