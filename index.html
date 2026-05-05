@@ -45,7 +45,8 @@
     </section>
 
     <!-- BENEFITS -->
-    <section class="block alt">
+    <section class="block alt flyer-section">
+      <img class="flyer" src="assets/img/menachem-flying.png" alt="" aria-hidden="true" />
       <div class="container">
         <div class="section-head">
           <h2>ככה זה נראה <span style="color:var(--brand)">עם</span> סוכן קולי</h2>
@@ -106,17 +107,10 @@
     <!-- FINAL CTA -->
     <section class="final-cta">
       <div class="container">
-        <h2>"הנחמה הגדולה ביותר של בעל עסק היא מנחם"</h2>
+        <h2>"הנחמה הגדולה ביותר<br/>של בעל עסק היא מנחם"</h2>
         <p>ללקוחות שלך מגיע שירות כזה. תלחץ ותראה בעצמך.</p>
-        <div class="cta-arrow" aria-hidden="true">
-          <svg viewBox="0 0 80 90" width="60" height="68" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 8 C 50 18, 65 38, 50 70" />
-            <path d="M40 60 L 50 72 L 60 60" />
-          </svg>
-        </div>
         <button class="cta-pill" data-open-modal>
           מנחם תתקשר אלי!
-          <span aria-hidden="true">←</span>
         </button>
       </div>
     </section>
@@ -170,6 +164,31 @@
     document.querySelectorAll("[data-close-modal]").forEach(b => b.addEventListener("click", closeModal));
     modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape" && modal.classList.contains("open")) closeModal(); });
+
+    // Parallax flying Menachem across the benefits section
+    const flyerSection = document.querySelector(".flyer-section");
+    const flyer = document.querySelector(".flyer");
+    if (flyerSection && flyer && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      let ticking = false;
+      function updateFlyer() {
+        const rect = flyerSection.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const total = rect.height + vh;
+        const traveled = vh - rect.top;
+        const p = Math.max(0, Math.min(1, traveled / total));
+        flyer.style.setProperty("--p", p.toFixed(4));
+        ticking = false;
+      }
+      function onScroll() {
+        if (!ticking) {
+          requestAnimationFrame(updateFlyer);
+          ticking = true;
+        }
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+      updateFlyer();
+    }
 
     function handleSubmit(e) {
       e.preventDefault();
