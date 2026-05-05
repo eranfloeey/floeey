@@ -48,6 +48,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="he" dir="rtl">
       <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if(!document.cookie.includes('floeey_uid=')){var u=(self.crypto&&self.crypto.randomUUID)?self.crypto.randomUUID():(Math.random().toString(36).slice(2)+Date.now().toString(36));document.cookie='floeey_uid='+u+'; max-age=31536000; path=/; samesite=lax';}`,
+          }}
+        />
         <PixelInjector head={pixels.head} body={pixels.body} />
         {children}
       </body>

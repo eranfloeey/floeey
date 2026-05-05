@@ -1,14 +1,20 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import LandingPage from "@/components/LandingPage";
 import { listVariants } from "@/lib/db";
 import { pickVariantForUser } from "@/lib/data";
 
-export const dynamic = "force-dynamic"; // We pick a variant per request
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const userId = cookies().get("floeey_uid")?.value || "anon";
+  // Stable user id without middleware: cookie if present, else IP+UA hash.
+  const cookieUid = cookies().get("floeey_uid")?.value;
+  const h = headers();
+  const fingerprint =
+    cookieUid ||
+    `${h.get("x-forwarded-for") || "0"}::${h.get("user-agent") || "ua"}`;
+
   const variants = await listVariants().catch(() => []);
-  const v = pickVariantForUser(variants, userId);
+  const v = pickVariantForUser(variants, fingerprint);
   return (
     <LandingPage
       variantId={v?.id || "control"}
