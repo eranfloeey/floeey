@@ -2,10 +2,11 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Floeey — סוכן קולי לעסקים | מנחם עונה לכל לקוח תוך שניות</title>
   <meta name="description" content="סוכן AI שעונה לכל לקוח תוך שניות, 24/7, ולא מפספס אף ליד. השאר פרטים ומנחם כבר מתקשר." />
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="preload" as="image" href="assets/img/menachem.png" />
   <link rel="stylesheet" href="styles.css" />
   <meta property="og:title" content="Floeey — סוכן קולי לעסקים" />
   <meta property="og:description" content="עונה לכל לקוח תוך שניות, 24/7. לא מפספס אף ליד." />
@@ -16,7 +17,7 @@
   <header class="site-header">
     <div class="container">
       <a class="logo" href="#top" aria-label="Floeey"><img src="assets/img/logo.png" alt="Floeey" /></a>
-      <a class="header-cta" href="#lead">השאר פרטים</a>
+      <button class="header-cta" data-open-modal>השאר פרטים</button>
     </div>
   </header>
 
@@ -25,38 +26,26 @@
     <!-- HERO -->
     <section class="hero">
       <div class="container">
-        <div>
+        <div class="hero-text">
           <span class="hero-eyebrow">סוכן קולי לעסקים</span>
           <h1>
-            <span class="strike">אתה</span> <br/>
-            <span class="accent">מנחם</span> כבר עונה לכל לקוח <br/>
+            תכיר את <span class="accent">מנחם</span>.<br/>
+            הוא עונה לכל לקוח<br/>
             תוך שניות.
           </h1>
           <p class="lead">
-            סוכן AI שעונה לכל פנייה — 24/7, גם כשאתה לא זמין, גם כשהיד עסוקה, גם בלילה.
+            סוכן AI שעונה לכל פנייה — 24/7, גם כשאתה לא זמין.
             לא מפספס אף ליד. יותר לקוחות, פחות שחיקה.
           </p>
+          <button class="hero-cta" data-open-modal>
+            השאר פרטים
+            <span class="arrow" aria-hidden="true">←</span>
+          </button>
         </div>
 
-        <form id="lead" class="form-card" onsubmit="return handleSubmit(event)">
-          <h3>השאר פרטים — מנחם כבר מתקשר</h3>
-          <p class="small">חוזרים אליך תוך דקות עם הדגמה חיה של הסוכן.</p>
-
-          <label for="name">שם מלא</label>
-          <input id="name" name="name" type="text" placeholder="ישראל ישראלי" required />
-
-          <label for="phone">מספר טלפון</label>
-          <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="050-0000000" required />
-
-          <label for="business">שם העסק (אופציונלי)</label>
-          <input id="business" name="business" type="text" placeholder="העסק שלך" />
-
-          <button type="submit">
-            השאר פרטים
-            <span aria-hidden="true">←</span>
-          </button>
-          <p class="micro">המידע שלך מאובטח ולא יועבר לצד שלישי.</p>
-        </form>
+        <div class="hero-art">
+          <img class="menachem" src="assets/img/menachem.png" alt="מנחם — הסוכן הקולי של פלואי" />
+        </div>
       </div>
     </section>
 
@@ -103,7 +92,7 @@
           <div class="step">
             <div class="num">1</div>
             <h4>משאיר פרטים</h4>
-            <p>ממלא את הטופס למעלה — שם, טלפון, ושם העסק.</p>
+            <p>ממלא את הטופס — שם, טלפון, ושם העסק.</p>
           </div>
           <div class="step">
             <div class="num">2</div>
@@ -124,10 +113,10 @@
       <div class="container">
         <h2>תפסיק להיות צוואר הבקבוק.</h2>
         <p>השאר פרטים עכשיו — מנחם חוזר אליך תוך דקות.</p>
-        <a class="cta-pill" href="#lead">
+        <button class="cta-pill" data-open-modal>
           השאר פרטים
           <span aria-hidden="true">←</span>
-        </a>
+        </button>
       </div>
     </section>
 
@@ -139,14 +128,58 @@
     </div>
   </footer>
 
+  <!-- MODAL -->
+  <div class="modal" id="leadModal" role="dialog" aria-modal="true" aria-labelledby="leadTitle" aria-hidden="true">
+    <div class="modal-card">
+      <button class="modal-close" data-close-modal aria-label="סגור">×</button>
+      <h3 id="leadTitle">השאר פרטים — מנחם כבר מתקשר</h3>
+      <p class="small">חוזרים אליך תוך דקות עם הדגמה חיה של הסוכן.</p>
+      <form id="leadForm" onsubmit="return handleSubmit(event)">
+        <label for="name">שם מלא</label>
+        <input id="name" name="name" type="text" placeholder="ישראל ישראלי" required />
+
+        <label for="phone">מספר טלפון</label>
+        <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="050-0000000" required />
+
+        <label for="business">שם העסק (אופציונלי)</label>
+        <input id="business" name="business" type="text" placeholder="העסק שלך" />
+
+        <button type="submit">
+          השאר פרטים
+          <span aria-hidden="true">←</span>
+        </button>
+        <p class="micro">המידע שלך מאובטח ולא יועבר לצד שלישי.</p>
+      </form>
+    </div>
+  </div>
+
   <script>
+    const modal = document.getElementById("leadModal");
+    function openModal() {
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      setTimeout(() => modal.querySelector("input")?.focus(), 50);
+    }
+    function closeModal() {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+    document.querySelectorAll("[data-open-modal]").forEach(b => b.addEventListener("click", openModal));
+    document.querySelectorAll("[data-close-modal]").forEach(b => b.addEventListener("click", closeModal));
+    modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && modal.classList.contains("open")) closeModal(); });
+
     function handleSubmit(e) {
       e.preventDefault();
       const form = e.target;
       const data = Object.fromEntries(new FormData(form));
       console.log("lead submitted:", data);
-      form.querySelector("button").textContent = "תודה! חוזרים אליך תוך דקות";
-      form.querySelector("button").disabled = true;
+      const btn = form.querySelector("button[type=submit]");
+      btn.textContent = "תודה! חוזרים אליך תוך דקות";
+      btn.disabled = true;
+      setTimeout(closeModal, 1800);
       return false;
     }
   </script>
