@@ -377,16 +377,30 @@ footer {
 }
 .modal-card {
   position: relative;
-  width: 100%; max-width: 460px;
+  width: 100%; max-width: 540px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 36px 32px 32px;
+  padding-inline-end: 200px;            /* RTL: leave room on the left for Menachem */
   box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
   animation: popIn 0.25s ease;
 }
+.modal-character {
+  position: absolute;
+  left: -110px;
+  bottom: -50px;
+  width: 360px;
+  height: auto;
+  z-index: 0;
+  pointer-events: none;
+  filter: drop-shadow(10px 14px 24px rgba(0, 0, 0, 0.55));
+}
+.modal-card > *:not(.modal-character) { position: relative; z-index: 1; }
 .modal-close {
-  position: absolute; top: 14px; left: 14px;
+  position: absolute; top: 14px; right: 14px;
+  z-index: 2;
   width: 36px; height: 36px; border-radius: 50%;
   background: transparent; color: var(--text-muted);
   border: 0; cursor: pointer;
@@ -395,20 +409,20 @@ footer {
 }
 .modal-close:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
 .modal-card h3 {
-  font-weight: 800; font-size: 24px; line-height: 1.25;
-  margin-bottom: 8px; text-align: center;
+  font-weight: 800; font-size: 22px; line-height: 1.25;
+  margin: 8px 0 8px; text-align: right;
 }
-.modal-card h3 .line {
-  display: flex; align-items: center; justify-content: center;
-  gap: 10px;
+.modal-card h3 .line { display: block; }
+.modal-card h3 .line-big {
+  font-size: 56px; font-weight: 900; line-height: 1;
+  color: var(--brand);
+  margin: 6px 0 4px;
 }
-.modal-card h3 .inline-menachem {
-  display: inline-block;
-  height: 1.6em; width: auto;
-  vertical-align: middle;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+.modal-card h3 .line-big .m { color: inherit; }
+.modal-card .small {
+  color: var(--text-muted); font-size: 15px;
+  margin-bottom: 22px; text-align: right;
 }
-.modal-card .small { color: var(--text-muted); font-size: 15px; margin-bottom: 22px; text-align: center; }
 .modal-card label {
   display: block; font-size: 14px;
   color: var(--text-muted); margin-bottom: 6px;
@@ -474,7 +488,21 @@ footer {
 }
 @media (max-width: 480px) {
   .benefits { grid-template-columns: 1fr; }
-  .modal-card { padding: 32px 22px 24px; }
+  .modal-card {
+    padding: 28px 22px 22px;
+    padding-inline-end: 22px;
+    padding-block-start: 180px;        /* room for Menachem on top instead of side */
+  }
+  .modal-character {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: auto;
+    top: -40px;
+    width: 220px;
+  }
+  .modal-card h3 { text-align: center; }
+  .modal-card .small { text-align: center; }
+  .modal-card h3 .line-big { font-size: 44px; }
 }
 
 /* Step 3 character: keep peek modest on mobile so it doesn't collide with step 2 above */
