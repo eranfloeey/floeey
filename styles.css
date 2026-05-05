@@ -368,7 +368,7 @@ footer {
   .hero h1 { font-size: clamp(30px, 8.5vw, 44px); margin-bottom: 0; }
   .hero p.lead { font-size: 16px; margin: 0 auto 18px; max-width: 420px; }
   .hero-cta { padding: 14px 28px; font-size: 17px; }
-  .menachem { max-width: min(70vw, 300px); }
+  .menachem { max-width: min(92vw, 460px); }
   .benefits { grid-template-columns: repeat(2, 1fr); }
   .steps { grid-template-columns: 1fr; gap: 32px; }
   section.block { padding: 70px 0; }
