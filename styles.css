@@ -94,7 +94,7 @@ button { font-family: inherit; }
 /* ===== Hero (above the fold) ===== */
 .hero {
   position: relative;
-  min-height: calc(100svh - var(--header-h));
+  min-height: 100svh;
   display: flex; align-items: center;
   padding: 32px 0 48px;
   background:
@@ -351,24 +351,22 @@ footer {
 
 /* ===== Responsive ===== */
 @media (max-width: 880px) {
-  :root { --header-h: 60px; }
-  .hero { padding: 16px 0 24px; }
+  .hero { padding: 12px 0 16px; }
   .hero .container {
     grid-template-columns: 1fr;
     grid-template-areas:
       "top"
       "art"
       "bottom";
-    row-gap: 14px;
+    row-gap: 6px;
     column-gap: 0;
     text-align: center;
   }
   .hero-top, .hero-bottom { align-self: auto; }
-  .hero-eyebrow { margin-bottom: 12px; }
-  .hero h1 { font-size: clamp(30px, 8.5vw, 44px); margin-bottom: 0; }
-  .hero p.lead { font-size: 16px; margin: 0 auto 18px; max-width: 420px; }
-  .hero-cta { padding: 14px 28px; font-size: 17px; }
-  .menachem { max-width: min(92vw, 460px); }
+  .hero h1 { font-size: clamp(28px, 8vw, 40px); margin-bottom: 0; line-height: 1.1; }
+  .hero p.lead { font-size: 15px; margin: 0 auto 14px; max-width: 380px; }
+  .hero-cta { padding: 12px 26px; font-size: 16px; }
+  .menachem { max-width: min(78vw, 380px); }
   .benefits { grid-template-columns: repeat(2, 1fr); }
   .steps { grid-template-columns: 1fr; gap: 32px; }
   section.block { padding: 70px 0; }
