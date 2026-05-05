@@ -99,7 +99,6 @@ export default function LeadModal({
           <p className="small">זה לא איום. זו הבטחה.</p>
 
           <form id="leadForm" onSubmit={submit}>
-            <label htmlFor="name">שם מלא</label>
             <div className="field">
               <svg
                 className="field-icon"
@@ -111,10 +110,17 @@ export default function LeadModal({
               >
                 <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
               </svg>
-              <input ref={inputRef} id="name" name="name" type="text" placeholder="השם שלך" required />
+              <input
+                ref={inputRef}
+                id="name"
+                name="name"
+                type="text"
+                placeholder="השם שלך"
+                aria-label="שם מלא"
+                required
+              />
             </div>
 
-            <label htmlFor="phone">מספר טלפון</label>
             <div className="field">
               <svg
                 className="field-icon"
@@ -126,7 +132,15 @@ export default function LeadModal({
               >
                 <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z" />
               </svg>
-              <input id="phone" name="phone" type="tel" inputMode="tel" placeholder="המספר שלך" required />
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                placeholder="המספר שלך"
+                aria-label="מספר טלפון"
+                required
+              />
             </div>
 
             <button type="submit" className="submit-btn" disabled={submitting || done}>

@@ -513,7 +513,7 @@ footer {
 }
 .modal-body .field-icon {
   position: absolute;
-  inset-inline-end: 14px;
+  inset-inline-start: 14px;             /* visual right in RTL */
   top: 50%; transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
@@ -523,8 +523,11 @@ footer {
   width: 100%; background: var(--bg);
   border: 1px solid var(--border); border-radius: 12px;
   color: var(--text);
-  padding: 14px 42px 14px 16px;
+  padding: 14px 16px;
+  padding-inline-start: 42px;
   font-family: inherit; font-size: 16px;
+  text-align: start;
+  direction: rtl;
   transition: border-color 0.15s ease;
 }
 .modal-body input:focus { outline: none; border-color: var(--brand); }
@@ -593,13 +596,22 @@ footer {
 @media (max-width: 720px) {
   .modal-card {
     grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 20px;
-    max-width: 460px;
+    gap: 4px;
+    padding: 18px 18px 16px;
+    max-width: 380px;
+    border-radius: 18px;
   }
-  .modal-art { min-height: 220px; }
-  .modal-character { max-width: 200px; }
-  .bubble { font-size: 15px; padding: 6px 11px; }
+  /* Stack art ABOVE form on mobile */
+  .modal-art { order: -1; min-height: 150px; padding-top: 6px; }
+  .modal-character { max-width: 150px; }
+  .bubble { font-size: 13px; padding: 5px 10px; top: 0; right: 8%; }
+  .modal-body .title .line-big { font-size: 38px; }
+  .modal-body .title .line { font-size: 18px; }
+  .modal-body .eyebrow { font-size: 15px; }
+  .modal-body .small { font-size: 13px; margin-bottom: 12px; }
+  .modal-body input { padding: 12px 16px; padding-inline-start: 38px; font-size: 15px; }
+  .modal-body .submit-btn { padding: 12px 14px; font-size: 16px; }
+  .modal-body .submit-btn .btn-icon { width: 30px; height: 30px; }
 }
 @media (max-width: 480px) {
   .benefits { grid-template-columns: 1fr; }
