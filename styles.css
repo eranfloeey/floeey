@@ -39,6 +39,9 @@
   --maxw: 1200px;
   --radius: 18px;
   --header-h: 68px;
+
+  /* Float speed multiplier — 1 = current. Higher = slower. Lower = faster. */
+  --float-speed: 1;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -164,67 +167,13 @@ button { font-family: inherit; }
 }
 .menachem {
   position: relative; z-index: 2;
-  width: 100%; max-width: 520px;
+  width: 100%; max-width: 560px;
   filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5));
   animation:
-    float-y 5.3s ease-in-out infinite,
-    float-x 7.1s ease-in-out infinite,
-    float-rot 9.7s ease-in-out infinite;
+    float-y calc(13s * var(--float-speed)) ease-in-out infinite,
+    float-x calc(18s * var(--float-speed)) ease-in-out infinite,
+    float-rot calc(24s * var(--float-speed)) ease-in-out infinite;
   will-change: transform;
-}
-
-/* orbiting badges */
-.orbit {
-  position: absolute; inset: 0; z-index: 3;
-  pointer-events: none;
-}
-.orb {
-  position: absolute;
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  background: #fff;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.45),
-              0 0 0 1px rgba(255, 255, 255, 0.06) inset;
-  animation: orb-float var(--d, 6s) ease-in-out infinite;
-  animation-delay: calc(var(--d, 6s) * -0.3);
-  --x: 0px;
-  --y: 0px;
-}
-.orb.small {
-  width: 34px; height: 34px;
-  color: #fff; font-weight: 800; font-size: 14px;
-  font-family: inherit;
-}
-.orb-1 { top: 6%;   right: 4%;  }
-.orb-2 { top: 8%;   left: 8%;   }
-.orb-3 { top: 38%;  right: -2%; }
-.orb-4 { bottom: 18%; left: -2%; }
-.orb-5 { top: 28%;  left: 18%;  }
-.orb-6 { bottom: 8%; right: 14%; }
-
-@keyframes orb-float {
-  0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(var(--x), var(--y)); }
-}
-
-.check {
-  position: absolute;
-  font-weight: 700; font-size: 13px;
-  color: #22c55e;
-  background: #fff;
-  padding: 4px 10px;
-  border-radius: 999px;
-  box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.35);
-  animation: check-float var(--d, 7s) ease-in-out infinite;
-  animation-delay: calc(var(--d, 7s) * -0.2);
-}
-.check-1 { top: 22%; left: 0%; }
-.check-2 { top: 60%; right: 4%; }
-.check-3 { bottom: 30%; right: 22%; }
-@keyframes check-float {
-  0%, 100% { transform: translate(0, 0) rotate(-2deg); opacity: 0.95; }
-  50%      { transform: translate(-6px, -10px) rotate(3deg); opacity: 1; }
 }
 @keyframes float-y {
   0%   { transform: translateY(0); }
@@ -253,8 +202,9 @@ button { font-family: inherit; }
   0%, 100% { opacity: 0.8; transform: scale(1); }
   50%      { opacity: 1;   transform: scale(1.08); }
 }
+.hero-art::before { animation: pulse calc(14s * var(--float-speed)) ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .menachem, .hero-art::before, .orb, .check { animation: none; }
+  .menachem, .hero-art::before { animation: none; }
 }
 
 /* ===== Sections below ===== */
