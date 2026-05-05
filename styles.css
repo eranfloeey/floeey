@@ -134,6 +134,7 @@ button { font-family: inherit; }
   margin-bottom: 22px;
 }
 .hero h1 .accent { color: var(--brand); }
+.m { color: var(--brand); font-weight: inherit; }
 .hero p.lead {
   font-size: clamp(17px, 1.6vw, 21px);
   color: var(--text-muted);
