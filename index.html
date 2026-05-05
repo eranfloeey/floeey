@@ -130,25 +130,49 @@
   <!-- MODAL -->
   <div class="modal" id="leadModal" role="dialog" aria-modal="true" aria-labelledby="leadTitle" aria-hidden="true">
     <div class="modal-card">
-      <img class="modal-character" src="assets/img/menachem-linkedin.png" alt="" aria-hidden="true" />
       <button class="modal-close" data-close-modal aria-label="סגור">×</button>
-      <h3 id="leadTitle">
-        <span class="line">בעוד 30 שניות בדיוק</span>
-        <span class="line line-big"><span class="m">מנחם</span></span>
-        <span class="line">איתך על הקו</span>
-      </h3>
-      <p class="small">זה לא איום. זו הבטחה.</p>
-      <form id="leadForm" onsubmit="return handleSubmit(event)">
-        <label for="name">שם מלא</label>
-        <input id="name" name="name" type="text" placeholder="ישראל ישראלי" required />
 
-        <label for="phone">מספר טלפון</label>
-        <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="050-0000000" required />
+      <div class="modal-art">
+        <span class="bubble">נדבר <span class="wink">😉</span></span>
+        <img class="modal-character" src="assets/img/menachem-linkedin.png" alt="" aria-hidden="true" />
+      </div>
 
-        <button type="submit">
-          צלצל כבר מנחם!
-        </button>
-      </form>
+      <div class="modal-body">
+        <p class="eyebrow">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M9 1h6v2H9V1zm10 6.6 1.4-1.4-1.4-1.4-1.6 1.6A9 9 0 0 0 12 5a9 9 0 1 0 9 9c0-2.1-.8-4.1-2-5.4zM12 21a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm1-11h-2v6h2v-6z"/></svg>
+          בעוד <span class="num-accent">30 שניות</span> בדיוק
+        </p>
+        <h3 id="leadTitle" class="title">
+          <span class="line-big m">מנחם</span>
+          <span class="line">איתך על הקו</span>
+        </h3>
+        <p class="small">זה לא איום. זו הבטחה.</p>
+
+        <form id="leadForm" onsubmit="return handleSubmit(event)">
+          <label for="name">שם מלא</label>
+          <div class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
+            <input id="name" name="name" type="text" placeholder="השם שלך" required />
+          </div>
+
+          <label for="phone">מספר טלפון</label>
+          <div class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z"/></svg>
+            <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="המספר שלך" required />
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <span class="btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z"/></svg>
+            </span>
+            צלצל כבר מנחם!
+          </button>
+          <p class="trust">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5l-8-3z"/></svg>
+            הפרטים שלך בטוחים איתנו
+          </p>
+        </form>
+      </div>
     </div>
   </div>
 
