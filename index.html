@@ -18,6 +18,23 @@
 
     <!-- HERO -->
     <section class="hero">
+
+      <!-- Water reveal: covers hero on load, recedes after 2s -->
+      <div class="water" aria-hidden="true">
+        <svg class="wave wave-1" preserveAspectRatio="none" viewBox="0 0 1200 1000">
+          <path d="M0,260 C150,210 300,310 450,260 C600,210 750,310 900,260 C1020,220 1130,290 1200,260 L1200,1000 L0,1000 Z"/>
+        </svg>
+        <svg class="wave wave-2" preserveAspectRatio="none" viewBox="0 0 1200 1000">
+          <path d="M0,360 C200,320 350,400 550,360 C720,320 880,420 1080,370 C1140,355 1180,375 1200,365 L1200,1000 L0,1000 Z"/>
+        </svg>
+        <svg class="wave wave-3" preserveAspectRatio="none" viewBox="0 0 1200 1000">
+          <path d="M0,480 C160,440 320,520 500,480 C680,440 870,540 1050,490 C1130,470 1180,490 1200,485 L1200,1000 L0,1000 Z"/>
+        </svg>
+        <svg class="wave wave-4" preserveAspectRatio="none" viewBox="0 0 1200 1000">
+          <path d="M0,600 C220,560 380,640 580,610 C780,580 950,650 1140,615 C1170,610 1190,615 1200,613 L1200,1000 L0,1000 Z"/>
+        </svg>
+      </div>
+
       <div class="container">
         <div class="hero-top">
           <h1>
@@ -164,6 +181,14 @@
     document.querySelectorAll("[data-close-modal]").forEach(b => b.addEventListener("click", closeModal));
     modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape" && modal.classList.contains("open")) closeModal(); });
+
+    // Remove water layer after recede completes
+    const water = document.querySelector(".water");
+    if (water) {
+      water.addEventListener("animationend", e => {
+        if (e.animationName === "water-recede") water.remove();
+      });
+    }
 
     // Parallax flying Menachem across the benefits section
     const flyerSection = document.querySelector(".flyer-section");

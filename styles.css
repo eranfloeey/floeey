@@ -97,6 +97,7 @@ button { font-family: inherit; }
   min-height: 100svh;
   display: flex; align-items: center;
   padding: 32px 0 48px;
+  overflow: hidden;
   background:
     radial-gradient(900px 500px at 75% 20%, rgba(236, 76, 106, 0.28), transparent 60%),
     radial-gradient(700px 500px at 15% 100%, rgba(236, 76, 106, 0.16), transparent 60%),
@@ -114,9 +115,9 @@ button { font-family: inherit; }
   align-items: center;
   width: 100%;
 }
-.hero-top    { grid-area: top; align-self: end; }
-.hero-bottom { grid-area: bottom; align-self: start; }
-.hero-art    { grid-area: art; }
+.hero-top    { grid-area: top; align-self: end; position: relative; z-index: 10; }
+.hero-bottom { grid-area: bottom; align-self: start; position: relative; z-index: 10; }
+.hero-art    { grid-area: art; position: relative; }
 .hero-eyebrow {
   display: inline-block;
   font-size: 14px; font-weight: 500;
@@ -201,6 +202,42 @@ button { font-family: inherit; }
 .hero-art::before { animation: pulse calc(14s * var(--float-speed)) ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .menachem, .hero-art::before { animation: none; }
+}
+
+/* ===== Water reveal (load-only) =====
+   Layered SVG waves cover the hero until ~2s after load, then crest and recede. */
+.water {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  animation: water-recede 2.4s cubic-bezier(0.42, 0, 0.2, 1) 2s forwards;
+}
+.water .wave {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+.water .wave-1 { fill: #1a4fc7; opacity: 0.92; animation: drift-a 4.8s ease-in-out infinite; }
+.water .wave-2 { fill: #2f74e0; opacity: 0.88; animation: drift-b 5.6s ease-in-out infinite; }
+.water .wave-3 { fill: #4ea2ea; opacity: 0.82; animation: drift-c 4.2s ease-in-out infinite; }
+.water .wave-4 { fill: #6dc8ee; opacity: 0.78; animation: drift-d 6.1s ease-in-out infinite; }
+
+@keyframes drift-a { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-22px); } }
+@keyframes drift-b { 0%,100% { transform: translateX(0); } 50% { transform: translateX(18px); } }
+@keyframes drift-c { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-14px); } }
+@keyframes drift-d { 0%,100% { transform: translateX(0); } 50% { transform: translateX(20px); } }
+
+@keyframes water-recede {
+  0%   { transform: translateY(0);     opacity: 1; }
+  18%  { transform: translateY(-22px); opacity: 1; }    /* crest up like a beach wave */
+  100% { transform: translateY(115%);  opacity: 0; }    /* pull back & fade */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .water { display: none; }
 }
 
 /* ===== Sections below ===== */
@@ -416,11 +453,12 @@ footer {
   .hero-cta { padding: 12px 26px; font-size: 16px; }
   .menachem { max-width: min(78vw, 380px); }
   /* Flyer: anchor to viewport units on mobile so tall stacked-card sections don't
-     reveal him too early. */
+     reveal him too early. Big negative start offsets keep him fully off-screen
+     until well into the section. */
   .flyer {
     width: clamp(180px, 52vw, 300px);
-    right:  calc(-55vw + var(--p) * 165vw);
-    bottom: calc(-32vh + var(--p) * 125vh);
+    right:  calc(-90vw + var(--p) * 210vw);
+    bottom: calc(-60vh + var(--p) * 155vh);
   }
   .benefits { grid-template-columns: repeat(2, 1fr); }
   .steps { grid-template-columns: 1fr; gap: 32px; }
