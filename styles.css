@@ -295,12 +295,12 @@ section.block.alt { background: var(--bg-soft); }
 }
 .step-character {
   position: absolute;
-  top: -75%;
+  top: -55%;
   left: -14%;
   width: 55%;
-  z-index: 1;                           /* below the card -> card edge clips him */
+  z-index: 3;                           /* in front of the card */
   pointer-events: none;
-  filter: drop-shadow(-8px -6px 18px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(-8px 8px 22px rgba(0, 0, 0, 0.6));
   transform-origin: 60% 100%;
   animation: peek-sway 5.4s ease-in-out infinite;
   will-change: transform;
@@ -466,7 +466,7 @@ footer {
 
 /* Step 3 character: keep peek modest on mobile so it doesn't collide with step 2 above */
 @media (max-width: 880px) {
-  .step-character { top: -42%; left: -8%; width: 38%; }
+  .step-character { top: -28%; left: -8%; width: 38%; }
 }
 
 /* keep the hero compact on short screens */
