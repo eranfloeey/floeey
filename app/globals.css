@@ -36,7 +36,7 @@
   --text: #ffffff;
   --text-muted: #b8b8c4;
   --border: rgba(255, 255, 255, 0.08);
-  --maxw: 1200px;
+  --maxw: 1440px;
   --radius: 18px;
   --header-h: 68px;
 
@@ -129,7 +129,7 @@ button { font-family: inherit; }
 }
 .hero h1 {
   font-weight: 900;
-  font-size: clamp(40px, 5.6vw, 76px);
+  font-size: clamp(40px, 5.8vw, 96px);
   line-height: 1.02;
   letter-spacing: -0.5px;
   margin-bottom: 22px;
@@ -137,9 +137,9 @@ button { font-family: inherit; }
 .hero h1 .accent { color: var(--brand); }
 .m { color: var(--brand); font-weight: inherit; }
 .hero p.lead {
-  font-size: clamp(17px, 1.6vw, 21px);
+  font-size: clamp(17px, 1.4vw, 24px);
   color: var(--text-muted);
-  max-width: 540px;
+  max-width: 640px;
   margin-bottom: 32px;
   font-weight: 400;
 }
@@ -176,7 +176,7 @@ button { font-family: inherit; }
 }
 .menachem {
   position: relative; z-index: 2;
-  width: 100%; max-width: 720px;
+  width: 100%; max-width: 880px;
   filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5));
   animation: float-smooth calc(22s * var(--float-speed)) cubic-bezier(0.45, 0, 0.55, 1) infinite;
   will-change: transform;
@@ -857,6 +857,6 @@ footer {
 
 /* keep the hero compact on short screens */
 @media (max-height: 720px) and (min-width: 881px) {
-  .hero h1 { font-size: clamp(36px, 4.6vw, 60px); }
-  .menachem { max-width: 560px; }
+  .hero h1 { font-size: clamp(36px, 4.6vw, 64px); }
+  .menachem { max-width: 600px; }
 }
