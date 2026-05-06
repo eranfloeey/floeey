@@ -13,8 +13,6 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
   const armRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
     function progressFor(el: HTMLElement) {
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
@@ -53,7 +51,7 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
       <section className="block alt flyer-section" ref={flyerSectionRef}>
         <img
           className="flyer"
-          src="/img/menachem-flying.png"
+          src="/img/menachem-flying-v2.png"
           alt=""
           aria-hidden="true"
           ref={flyerRef}
@@ -215,7 +213,7 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
       <section className="final-cta arm-section" ref={armSectionRef}>
         <img
           className="arm"
-          src="/img/menachem-arm.png"
+          src="/img/menachem-arm-v2.png"
           alt=""
           aria-hidden="true"
           ref={armRef}
