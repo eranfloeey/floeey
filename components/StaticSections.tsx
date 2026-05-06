@@ -165,30 +165,48 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
               </span>
             </div>
 
-            {/* FAN-OUT to 8 actions */}
-            <div className="flow-fanout" aria-hidden="true">
-              <svg viewBox="0 0 1100 60" preserveAspectRatio="none">
-                <path d="M550,0 V20 H63.5 V60" />
-                <path d="M550,0 V20 H202.5 V60" />
-                <path d="M550,0 V20 H341.5 V60" />
-                <path d="M550,0 V20 H480.5 V60" />
-                <path d="M550,0 V20 H619.5 V60" />
-                <path d="M550,0 V20 H758.5 V60" />
-                <path d="M550,0 V20 H897.5 V60" />
-                <path d="M550,0 V20 H1036.5 V60" />
+            {/* FAN-OUT + ACTIONS — overlay SVG draws an orthogonal "wire" from the agent
+                to each of the 8 cards in a 4-column / 2-row grid. */}
+            <div className="flow-actions-area">
+              <svg
+                className="flow-wires"
+                viewBox="0 0 1100 360"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                {/* trunk down from agent */}
+                <path d="M550,0 V40" />
+                {/* split bus to 4 columns, then drop down to top-row cards */}
+                <path d="M550,40 H140 V120" />
+                <path d="M550,40 H410 V120" />
+                <path d="M550,40 H690 V120" />
+                <path d="M550,40 H960 V120" />
+                {/* continue from each top card down to its bottom-row partner */}
+                <path d="M140,220 V340" />
+                <path d="M410,220 V340" />
+                <path d="M690,220 V340" />
+                <path d="M960,220 V340" />
+                {/* junction dots */}
+                <circle cx="140" cy="120" r="4" />
+                <circle cx="410" cy="120" r="4" />
+                <circle cx="690" cy="120" r="4" />
+                <circle cx="960" cy="120" r="4" />
+                <circle cx="140" cy="340" r="4" />
+                <circle cx="410" cy="340" r="4" />
+                <circle cx="690" cy="340" r="4" />
+                <circle cx="960" cy="340" r="4" />
               </svg>
-            </div>
 
-            {/* ACTIONS — single row of 8 */}
-            <div className="flow-actions-grid">
-              <div className="flow-card flow-card-action"><span className="fc-icon">💳</span><span className="fc-label">קישור לתשלום</span></div>
-              <div className="flow-card flow-card-action"><span className="fc-icon">💬</span><span className="fc-label">שליחת WhatsApp</span></div>
-              <div className="flow-card flow-card-action"><span className="fc-icon">📅</span><span className="fc-label">קביעת פגישה</span></div>
-              <div className="flow-card flow-card-action"><span className="fc-icon">📊</span><span className="fc-label">פתיחת ליד ב-CRM</span></div>
-              <div className="flow-card flow-card-action"><span className="fc-icon">🧾</span><span className="fc-label">הפקת חשבונית</span></div>
-              <div className="flow-card flow-card-action"><span className="fc-icon">📦</span><span className="fc-label">בדיקת משלוח</span></div>
-              <div className="flow-card flow-card-action"><span className="fc-icon">📑</span><span className="fc-label">חוזה לחתימה</span></div>
-              <div className="flow-card flow-card-action"><span className="fc-icon">📞</span><span className="fc-label">העברת שיחה</span></div>
+              <div className="flow-actions-grid">
+                <div className="flow-card flow-card-action"><span className="fc-icon">💳</span><span className="fc-label">קישור לתשלום</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">💬</span><span className="fc-label">שליחת WhatsApp</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📅</span><span className="fc-label">קביעת פגישה</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📊</span><span className="fc-label">פתיחת ליד ב-CRM</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">🧾</span><span className="fc-label">הפקת חשבונית</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📦</span><span className="fc-label">בדיקת משלוח</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📑</span><span className="fc-label">חוזה לחתימה</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📞</span><span className="fc-label">העברת שיחה</span></div>
+              </div>
             </div>
           </div>
         </div>

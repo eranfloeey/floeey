@@ -453,30 +453,35 @@ section.block.alt { background: var(--bg-soft); }
   background: rgba(236, 76, 106, 0.15);
 }
 
-/* Fan-out SVG between agent and 8 actions.
-   viewBox is 1100x60 with 8 endpoints at the centers of an 8-column grid (cell width 127.25, gap 12, container 1100). */
-.flow-fanout {
+/* Wire layer + 8-card grid, sized so an SVG overlay can connect them deterministically.
+   The 4 column centers in a 1100-wide viewBox are at 140, 410, 690, 960. */
+.flow-actions-area {
+  position: relative;
   width: 100%;
-  height: 60px;
-  pointer-events: none;
-  margin-top: -1px; /* visually merge with top of cards */
+  margin-top: 14px;
 }
-.flow-fanout svg {
+.flow-wires {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  fill: none;
-  stroke: rgba(255,255,255,0.28);
-  stroke-width: 1.4;
+  pointer-events: none;
+  fill: rgba(236, 76, 106, 0.85);
+  stroke: rgba(236, 76, 106, 0.55);
+  stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
+  z-index: 0;
 }
 
-/* 8 actions in a single row */
 .flow-actions-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 12px;
-  width: 100%;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 88px;                       /* matches 220-120 viewBox = 100 units, ~88-100px */
+  row-gap: 32px;                              /* matches 340-220 viewBox gap */
+  column-gap: 18px;
 }
 .flow-card-action {
   flex-direction: column;
@@ -484,41 +489,27 @@ section.block.alt { background: var(--bg-soft); }
   text-align: center;
   padding: 14px 10px;
   gap: 8px;
+  background: #14141c;
 }
 .flow-card-action .fc-icon { width: 40px; height: 40px; font-size: 22px; }
-.flow-card-action .fc-label { font-size: 12.5px; font-weight: 700; line-height: 1.25; }
+.flow-card-action .fc-label { font-size: 13px; font-weight: 700; line-height: 1.25; }
 
-/* Connector dot at top of each action card, lining up with the SVG line ending */
-.flow-card-action::before {
-  content: "";
-  position: absolute;
-  top: -4px; left: 50%; transform: translateX(-50%);
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.6);
-  box-shadow: 0 0 0 3px #14141c;
-}
-
-/* Mobile collapse */
-@media (max-width: 1080px) {
-  .flow-actions-grid { grid-template-columns: repeat(4, 1fr); }
-  .flow-fanout { display: none; }
-  .flow-card-action::before { display: none; }
-  .flow-card-ai { margin-bottom: 10px; }
+/* Mobile: hide the wires, stack to 2 columns with simple connector */
+@media (max-width: 880px) {
+  .flow-wires { display: none; }
   .flow-actions-grid {
-    position: relative;
-    margin-top: 14px;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: auto;
+    row-gap: 12px;
+    column-gap: 10px;
   }
-  .flow-actions-grid::before {
+  .flow-actions-area::before {
     content: "";
     position: absolute;
     top: -14px; left: 50%; transform: translateX(-50%);
     width: 2px; height: 14px;
-    background: rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.2);
   }
-}
-@media (max-width: 600px) {
-  .flow-actions-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* === Team section ('מנחם Unlimited') === */
