@@ -557,6 +557,7 @@ section.block.alt { background: var(--bg-soft); }
   margin-left: -50vw;            /* full-bleed: escape the container's max-width */
   margin-top: 30px;
   overflow: hidden;
+  direction: ltr;                /* anchor the row to the LEFT so translateX moves it predictably */
 }
 .team-row {
   list-style: none;
