@@ -64,6 +64,32 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
   const flyerRef = useRef<HTMLImageElement>(null);
   const armSectionRef = useRef<HTMLElement>(null);
   const armRef = useRef<HTMLImageElement>(null);
+  const teamRowRef = useRef<HTMLUListElement>(null);
+
+  // Continuous-loop sizing of marquee avatars: center-of-viewport = largest, edges = smallest.
+  useEffect(() => {
+    const row = teamRowRef.current;
+    if (!row) return;
+    let raf: number;
+    const tick = () => {
+      const vw = window.innerWidth;
+      const cx = vw / 2;
+      const half = vw / 2;
+      const items = row.querySelectorAll<HTMLElement>(".team-avatar");
+      items.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const elCx = rect.left + rect.width / 2;
+        const dist = Math.min(1, Math.abs(elCx - cx) / half);
+        // smooth fall-off (cosine) — 1.0 in the middle, ~0.45 at edges
+        const eased = 1 - Math.cos((dist * Math.PI) / 2);
+        const scale = 1 - eased * 0.55;
+        el.style.setProperty("--s", scale.toFixed(3));
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   useEffect(() => {
     function progressFor(el: HTMLElement) {
@@ -296,13 +322,16 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
               הסוכן מדבר בקול שאתם תבחרו, זכר או נקבה, והוא מכיר את העסק שלכם כאילו היה בעל הבית!
             </p>
           </div>
-          <ul className="team-row" aria-label="צוות סוכני פלואי">
-            {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((n, i) => (
-              <li key={n} className="team-avatar">
-                <img src={`/img/team/${n}.png`} alt="" aria-hidden="true" />
-              </li>
-            ))}
-          </ul>
+          <div className="team-marquee">
+            <ul className="team-row" ref={teamRowRef} aria-label="צוות סוכני פלואי">
+              {/* Doubled list for seamless infinite loop */}
+              {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((n, i) => (
+                <li key={i} className="team-avatar">
+                  <img src={`/img/team/${n}.png`} alt="" aria-hidden="true" />
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
