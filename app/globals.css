@@ -560,6 +560,7 @@ section.block.alt { background: var(--bg-soft); }
 }
 .team-row {
   list-style: none;
+  direction: ltr;                        /* keep flex flow predictable; the avatar layout is symmetric */
   display: flex;
   align-items: center;
   gap: 0;
