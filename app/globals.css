@@ -561,25 +561,30 @@ section.block.alt { background: var(--bg-soft); }
 }
 .team-row {
   list-style: none;
-  direction: ltr;                        /* keep flex flow predictable; the avatar layout is symmetric */
+  direction: ltr;
   display: flex;
   align-items: center;
   gap: 0;
   width: max-content;
-  padding: 70px 0;                       /* room for the scaled-up center (1.55x) */
+  padding: 0;
+  margin: 0;
+  min-height: clamp(140px, 24vw, 240px);  /* reserve space so the section is visible even before JS runs */
   will-change: transform;
 }
 
 .team-avatar {
   --tint: rgba(236, 76, 106, 0.22);
   --s: 1;
-  width: clamp(72px, 8.5vw, 120px);
+  --size: clamp(64px, 9vw, 120px);
+  width: var(--size);
+  height: var(--size);                     /* explicit so it works without aspect-ratio support */
   aspect-ratio: 1 / 1;
   position: relative;
   scale: var(--s);
+  transform: scale(var(--s));              /* fallback for browsers without standalone 'scale' */
   transform-origin: center center;
-  transition: scale 0.08s linear;
-  will-change: scale;
+  transition: scale 0.08s linear, transform 0.08s linear;
+  will-change: scale, transform;
   flex-shrink: 0;
 }
 /* Pink glow halo behind each avatar */
