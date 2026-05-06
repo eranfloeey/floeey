@@ -251,27 +251,21 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
                 preserveAspectRatio="none"
                 aria-hidden="true"
               >
-                {/* trunk down from agent */}
-                <path d="M550,0 V40" />
-                {/* split bus to 4 columns, then drop down to top-row cards */}
-                <path d="M550,40 H140 V120" />
-                <path d="M550,40 H410 V120" />
-                <path d="M550,40 H690 V120" />
-                <path d="M550,40 H960 V120" />
-                {/* continue from each top card down to its bottom-row partner */}
-                <path d="M140,220 V340" />
-                <path d="M410,220 V340" />
-                <path d="M690,220 V340" />
-                <path d="M960,220 V340" />
-                {/* junction dots */}
-                <circle cx="140" cy="120" r="4" />
-                <circle cx="410" cy="120" r="4" />
-                <circle cx="690" cy="120" r="4" />
-                <circle cx="960" cy="120" r="4" />
-                <circle cx="140" cy="340" r="4" />
-                <circle cx="410" cy="340" r="4" />
-                <circle cx="690" cy="340" r="4" />
-                <circle cx="960" cy="340" r="4" />
+                <defs>
+                  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                    <path d="M0,0 L10,5 L0,10 Z" fill="rgba(255,255,255,0.42)" />
+                  </marker>
+                </defs>
+                {/* split bus from agent down to each of the 4 columns, ending at the top of row-1 cards */}
+                <path d="M550,0 V40 H131 V116" markerEnd="url(#arr)" />
+                <path d="M550,0 V40 H410 V116" markerEnd="url(#arr)" />
+                <path d="M550,0 V40 H690 V116" markerEnd="url(#arr)" />
+                <path d="M550,0 V40 H969 V116" markerEnd="url(#arr)" />
+                {/* row-1 to row-2 chain in each column */}
+                <path d="M131,220 V336" markerEnd="url(#arr)" />
+                <path d="M410,220 V336" markerEnd="url(#arr)" />
+                <path d="M690,220 V336" markerEnd="url(#arr)" />
+                <path d="M969,220 V336" markerEnd="url(#arr)" />
               </svg>
 
               <div className="flow-actions-grid">

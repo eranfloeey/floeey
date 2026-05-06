@@ -374,11 +374,11 @@ section.block.alt { background: var(--bg-soft); }
 .flow-card {
   background: #14141c;
   border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 12px;
-  padding: 14px 18px;
+  border-radius: 10px;
+  padding: 10px 14px;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   position: relative;
   box-shadow: 0 12px 24px -16px rgba(0,0,0,0.7);
   transition: transform 0.18s ease, border-color 0.18s ease;
@@ -403,18 +403,18 @@ section.block.alt { background: var(--bg-soft); }
   box-shadow: 0 4px 10px -2px rgba(120,120,255,0.5);
 }
 .fc-icon {
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
-  width: 36px; height: 36px;
-  border-radius: 8px;
+  width: 30px; height: 30px;
+  border-radius: 7px;
   display: flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,0.06);
   color: #fff;
 }
-.fc-icon svg { width: 20px; height: 20px; }
+.fc-icon svg { width: 17px; height: 17px; }
 .fc-label {
   display: flex; flex-direction: column;
-  font-weight: 700; font-size: 15px;
+  font-weight: 700; font-size: 14px;
   color: #fff;
   text-align: start;
   line-height: 1.2;
@@ -472,11 +472,11 @@ section.block.alt { background: var(--bg-soft); }
   width: 100%;
   height: 100%;
   pointer-events: none;
-  fill: rgba(236, 76, 106, 0.85);
-  stroke: rgba(236, 76, 106, 0.55);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1.2;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
   z-index: 0;
 }
 
@@ -485,21 +485,21 @@ section.block.alt { background: var(--bg-soft); }
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 88px;                       /* matches 220-120 viewBox = 100 units, ~88-100px */
-  row-gap: 32px;                              /* matches 340-220 viewBox gap */
+  grid-auto-rows: 76px;
+  row-gap: 28px;
   column-gap: 18px;
 }
 .flow-card-action {
-  flex-direction: column;
+  flex-direction: row-reverse;             /* RTL: icon on right, label on left */
   align-items: center;
-  text-align: center;
-  padding: 14px 10px;
-  gap: 8px;
+  text-align: start;
+  padding: 10px 14px;
+  gap: 10px;
   background: #14141c;
 }
-.flow-card-action .fc-icon { width: 44px; height: 44px; }
-.flow-card-action .fc-icon svg { width: 22px; height: 22px; color: var(--brand); }
-.flow-card-action .fc-label { font-size: 13px; font-weight: 700; line-height: 1.25; }
+.flow-card-action .fc-icon { width: 32px; height: 32px; border-radius: 7px; }
+.flow-card-action .fc-icon svg { width: 18px; height: 18px; color: var(--brand); }
+.flow-card-action .fc-label { font-size: 13px; font-weight: 700; line-height: 1.2; }
 
 /* Mobile: hide the wires, stack to 2 columns with simple connector */
 @media (max-width: 880px) {
