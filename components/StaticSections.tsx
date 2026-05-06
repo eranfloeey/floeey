@@ -74,29 +74,31 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
     const row = teamRowRef.current;
     if (!row) return;
 
-    let offset = 0;
-    let lastScrollY = window.scrollY;
     const SCROLL_SPEED = 0.6;     // px of horizontal travel per px of vertical scroll
+    let lastScrollY = window.scrollY;
+    let offset = window.scrollY * SCROLL_SPEED;   // align with current scroll on mount
     let raf = 0;
     let pending = false;
 
     const apply = () => {
       pending = false;
-      const half = row.scrollWidth / 2;     // half because the list is doubled
-      if (half > 0) {
-        offset = ((offset % half) + half) % half;
+      const cycle = row.scrollWidth / 3;    // tripled list -> wrap at 1/3
+      if (cycle > 0) {
+        offset = ((offset % cycle) + cycle) % cycle;
         row.style.transform = `translate3d(${-offset}px, 0, 0)`;
       }
-      // Update per-avatar scale based on screen position
+      // Per-avatar scale: sharp peak at viewport horizontal center
       const vw = window.innerWidth;
       const cx = vw / 2;
       const items = row.querySelectorAll<HTMLElement>(".team-avatar");
+      const MAX = 1.6, MIN = 0.32;
       items.forEach((el) => {
         const rect = el.getBoundingClientRect();
         const elCx = rect.left + rect.width / 2;
         const dist = Math.min(1, Math.abs(elCx - cx) / (vw / 2));
-        const eased = 1 - Math.cos((dist * Math.PI) / 2);
-        const scale = 1.5 - eased * 1.15;   // ~1.5 center, ~0.35 edges
+        // power curve <1 -> sharp peak so neighbors fall off fast
+        const t = Math.pow(dist, 0.42);
+        const scale = MAX - (MAX - MIN) * t;
         el.style.setProperty("--s", scale.toFixed(3));
       });
     };
@@ -351,8 +353,8 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
           </div>
           <div className="team-marquee">
             <ul className="team-row" ref={teamRowRef} aria-label="צוות סוכני פלואי">
-              {/* Doubled list for seamless infinite loop */}
-              {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((n, i) => (
+              {/* Tripled list — guarantees the viewport is always filled and modulo-wrap is invisible */}
+              {Array.from({ length: 3 }).flatMap(() => [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]).map((n, i) => (
                 <li key={i} className="team-avatar">
                   <img src={`/img/team/${n}.png`} alt="" aria-hidden="true" />
                 </li>

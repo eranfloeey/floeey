@@ -562,18 +562,17 @@ section.block.alt { background: var(--bg-soft); }
   list-style: none;
   display: flex;
   align-items: center;
-  gap: 0;                                /* no gap — overlap comes from scaling */
+  gap: 6px;                              /* a little air between avatars */
   width: max-content;
-  padding: 80px 0;                       /* room for the largest scale (1.5x) */
+  padding: 70px 0;                       /* room for the scaled-up center (1.6x) */
   will-change: transform;
 }
 
 .team-avatar {
   --tint: rgba(236, 76, 106, 0.22);
   --s: 1;
-  width: clamp(110px, 13vw, 170px);
+  width: clamp(72px, 8.5vw, 120px);
   aspect-ratio: 1 / 1;
-  margin: 0 -8px;                        /* light overlap between neighbors */
   position: relative;
   scale: var(--s);
   transform-origin: center center;
