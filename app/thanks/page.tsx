@@ -10,14 +10,14 @@ export const metadata = {
 export default function ThanksPage() {
   return (
     <main className="thanks-page">
-      <div className="thanks-art">
-        <img src="/img/menachem-flying-v2.png" alt="" aria-hidden="true" />
-      </div>
       <h1 className="thanks-title">
         וואו! מרגש!
         <br />
         אני כבר מרים את השפופרת ומצלצל..
       </h1>
+      <div className="thanks-art">
+        <img src="/img/menachem-flying-v2.png" alt="" aria-hidden="true" />
+      </div>
       <Link href="/" className="thanks-back">
         חזרה לעמוד הבית
       </Link>
