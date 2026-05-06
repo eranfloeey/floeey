@@ -134,6 +134,61 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
         </div>
       </section>
 
+      <section className="block actions-section">
+        <div className="container">
+          <div className="section-head">
+            <h2>
+              <span className="m">מנחם</span>, לא רק עונה. הוא <span className="m">מבצע</span>.
+            </h2>
+            <p>
+              מחובר לכל המערכות בעסק - שולח קישורי תשלום, קובע פגישות, פותח לידים ב-CRM, ועושה את העבודה במקומך.
+            </p>
+          </div>
+
+          <div className="hub">
+            <div className="action a1">
+              <div className="action-icon">💳</div>
+              <div className="action-label">קישור לתשלום</div>
+            </div>
+            <div className="action a2">
+              <div className="action-icon">💬</div>
+              <div className="action-label">שליחת WhatsApp</div>
+            </div>
+            <div className="action a3">
+              <div className="action-icon">📅</div>
+              <div className="action-label">קביעת פגישה</div>
+            </div>
+            <div className="action a4">
+              <div className="action-icon">📊</div>
+              <div className="action-label">פתיחת ליד ב-CRM</div>
+            </div>
+
+            <div className="hub-center">
+              <div className="hub-glow" aria-hidden="true"></div>
+              <img src="/img/menachem.png" alt="" aria-hidden="true" />
+              <div className="hub-caption">📞 שיחה נכנסת</div>
+            </div>
+
+            <div className="action a5">
+              <div className="action-icon">🧾</div>
+              <div className="action-label">הפקת חשבונית</div>
+            </div>
+            <div className="action a6">
+              <div className="action-icon">📦</div>
+              <div className="action-label">בדיקת משלוח</div>
+            </div>
+            <div className="action a7">
+              <div className="action-icon">📑</div>
+              <div className="action-label">חוזה לחתימה</div>
+            </div>
+            <div className="action a8">
+              <div className="action-icon">📞</div>
+              <div className="action-label">העברת שיחה</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="final-cta arm-section" ref={armSectionRef}>
         <img
           className="arm"
