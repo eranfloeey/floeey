@@ -523,7 +523,7 @@ section.block.alt { background: var(--bg-soft); }
 
 /* === Team section ('מנחם Unlimited') === */
 .team-section { padding-top: 80px; padding-bottom: 100px; }
-.team-section .section-head { margin-bottom: 36px; }
+.team-section .section-head { margin-bottom: 12px; }
 .team-section h2 {
   font-weight: 900;
   font-size: clamp(40px, 6.4vw, 84px);
