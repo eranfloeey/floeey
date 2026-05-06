@@ -345,9 +345,6 @@ section.block.alt { background: var(--bg-soft); }
 /* === Actions flowchart: 'מנחם, לא רק עונה. הוא מבצע.' === */
 .actions-section {
   background:
-    /* subtle grid pattern */
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px) 0 0 / 32px 32px,
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) 0 0 / 32px 32px,
     radial-gradient(900px 500px at 50% 30%, rgba(236, 76, 106, 0.08), transparent 60%),
     var(--bg);
 }
@@ -452,6 +449,17 @@ section.block.alt { background: var(--bg-soft); }
   background-origin: border-box;
   background-clip: padding-box, border-box;
 }
+/* Match trigger + agent widths on desktop so the two stacked cards read as a
+   pair, with the trigger no longer looking awkwardly narrow next to the wider
+   agent label. Scoped to ≥881px because on mobile this min-width would push the
+   cards past the action grid's column width and break the alignment. */
+@media (min-width: 881px) {
+  .flow-card-trigger,
+  .flow-card-ai {
+    min-width: 340px;
+    justify-content: flex-start;
+  }
+}
 .flow-card-ai .fc-avatar {
   width: 44px; height: 44px;
   border-radius: 50%;
@@ -459,25 +467,43 @@ section.block.alt { background: var(--bg-soft); }
   background: rgba(236, 76, 106, 0.15);
 }
 
-/* Wire layer + 8-card grid, sized so an SVG overlay can connect them deterministically.
-   The 4 column centers in a 1100-wide viewBox are at 140, 410, 690, 960. */
+/* Wire layer + 4-primary / 3-follow-up grid. The SVG (viewBox 1100x240) is overlaid
+   on the area; padding-top: 60px reserves the bus zone above the cards. The area
+   is forced to LTR so the SVG x-axis matches the grid column order regardless of
+   the surrounding RTL page; each card flips back to RTL for its Hebrew label. */
 .flow-actions-area {
   position: relative;
   width: 100%;
-  margin-top: 14px;
+  margin-top: 0;
+  padding-top: 60px;        /* 60px bus zone above row 1, matches viewBox y=0..60 */
+  direction: ltr;
 }
 .flow-wires {
   position: absolute;
-  inset: 0;
+  inset: 0;                 /* spans the full area incl. the 60px padding */
   width: 100%;
   height: 100%;
   pointer-events: none;
   fill: none;
-  stroke: rgba(255, 255, 255, 0.22);
-  stroke-width: 1.2;
-  stroke-linecap: butt;
-  stroke-linejoin: miter;
+  stroke: rgba(167, 139, 250, 0.55);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.35));
   z-index: 0;
+}
+.flow-wires .wire {
+  stroke-dasharray: 100;
+  /* Each path is pathLength=100. We map (build - step) to a 0..100 ramp; takes
+     ~0.07 of the total build progress to fully draw a single wire. */
+  stroke-dashoffset: calc(100 - clamp(0, (var(--build, 0) - var(--step, 0)) * 1400, 100));
+  transition: stroke-dashoffset 0.08s linear;
+}
+.flow-wires .wire-dot {
+  fill: rgba(167, 139, 250, 0.95);
+  filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.65));
+  opacity: clamp(0, calc((var(--build, 0) - var(--step, 0)) * 24), 1);
+  transition: opacity 0.08s linear;
 }
 
 .flow-actions-grid {
@@ -485,37 +511,234 @@ section.block.alt { background: var(--bg-soft); }
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 76px;
+  grid-template-rows: 76px 76px 76px;
   row-gap: 28px;
   column-gap: 18px;
 }
+.flow-card-action.a-row1 { grid-row: 1; }
+.flow-card-action.a-row2 { grid-row: 2; }
+.flow-card-action.a-row3 { grid-row: 3; }
+.flow-card-action.a-col1 { grid-column: 1; }
+.flow-card-action.a-col2 { grid-column: 2; }
+.flow-card-action.a-col3 { grid-column: 3; }
+.flow-card-action.a-col4 { grid-column: 4; }
+
 .flow-card-action {
-  flex-direction: row-reverse;             /* RTL: icon on right, label on left */
+  /* Hebrew RTL inside the card: direction:rtl + flex-direction:row puts the icon
+     (first child) at the start = right edge, label to its left, and content packs
+     against the right via the default justify-content:flex-start. */
+  display: flex;
+  flex-direction: row;
   align-items: center;
+  justify-content: flex-start;
   text-align: start;
   padding: 10px 14px;
   gap: 10px;
   background: #14141c;
+  direction: rtl;
+  --c: rgba(255, 255, 255, 0.45);
+  --c-soft: rgba(255, 255, 255, 0.06);
+  border-color: color-mix(in srgb, var(--c) 38%, rgba(255, 255, 255, 0.08));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent),
+    0 14px 28px -22px color-mix(in srgb, var(--c) 80%, transparent);
 }
-.flow-card-action .fc-icon { width: 32px; height: 32px; border-radius: 7px; }
-.flow-card-action .fc-icon svg { width: 18px; height: 18px; color: var(--brand); }
-.flow-card-action .fc-label { font-size: 13px; font-weight: 700; line-height: 1.2; }
+.flow-card-action .fc-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--c-soft);
+  border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+}
+.flow-card-action .fc-icon svg { width: 18px; height: 18px; color: var(--c); }
+.flow-card-action .fc-label { font-size: 13px; font-weight: 700; line-height: 1.2; color: #fff; }
+.flow-card-sub { background: #10101a; }
 
-/* Mobile: hide the wires, stack to 2 columns with simple connector */
+/* Color variants — set --c (line/icon color) and --c-soft (icon tile fill) per card */
+.flow-card-action.c-pink   { --c: #ec4c6a; --c-soft: rgba(236, 76, 106, 0.16); }
+.flow-card-action.c-blue   { --c: #60a5fa; --c-soft: rgba(96, 165, 250, 0.16); }
+.flow-card-action.c-green  { --c: #22c55e; --c-soft: rgba(34, 197, 94, 0.16); }
+.flow-card-action.c-purple { --c: #a78bfa; --c-soft: rgba(167, 139, 250, 0.16); }
+.flow-card-action.c-cyan   { --c: #5eead4; --c-soft: rgba(94, 234, 212, 0.16); }
+
+/* === Scroll-driven build reveal ===
+   .flow-build supplies --build (0..1) from JS. Children opt-in via inline --step.
+   Each element fades + slides up as build crosses its step, taking about 0.08
+   progress to finish revealing (the *12 multiplier). */
+.flow-build .flow-reveal {
+  opacity: clamp(0, calc((var(--build, 0) - var(--step, 0)) * 12), 1);
+  transform: translateY(calc((1 - clamp(0, (var(--build, 0) - var(--step, 0)) * 12, 1)) * 10px));
+  transition: opacity 0.08s linear, transform 0.08s linear;
+}
+.flow-build .flow-reveal-line {
+  /* Connector line between trigger and agent: grow from 0 to its natural height. */
+  height: calc(36px * clamp(0, (var(--build, 0) - var(--step, 0)) * 14, 1));
+  opacity: clamp(0, calc((var(--build, 0) - var(--step, 0)) * 14), 1);
+  transition: height 0.08s linear, opacity 0.08s linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-build .flow-reveal,
+  .flow-build .flow-reveal-line,
+  .flow-wires .wire,
+  .flow-wires .wire-dot {
+    opacity: 1 !important;
+    transform: none !important;
+    height: 36px !important;
+    stroke-dashoffset: 0 !important;
+  }
+}
+
+/* Mobile (≤880px): keep the desktop's tree feel — colored borders, junction dots,
+   purple stems — but rotate the layout so it stacks vertically. Each card grows a
+   ::before stem + ::after dot in its own --c colour, mimicking the SVG wires from
+   desktop. Everything in this block is scoped to ≤880px; desktop is untouched. */
 @media (max-width: 880px) {
   .flow-wires { display: none; }
-  .flow-actions-grid {
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: auto;
-    row-gap: 12px;
-    column-gap: 10px;
+
+  /* Trigger -> agent line: shorter and switched to a purple gradient so it matches
+     the wire colour the action stems will inherit below. The connector grows
+     with --build the same way the desktop wires do, but capped at 22px instead
+     of the desktop's 36px. */
+  .flow-line {
+    background: linear-gradient(180deg, rgba(167, 139, 250, 0.55), rgba(167, 139, 250, 0.15));
   }
+  .flow-build .flow-reveal-line {
+    height: calc(22px * clamp(0, (var(--build, 0) - var(--step, 0)) * 14, 1));
+    opacity: clamp(0, calc((var(--build, 0) - var(--step, 0)) * 14), 1);
+  }
+
+  /* Trigger + agent: match the action area's column width AND adopt the same
+     conic-gradient drawing border the action cards use, so all three card types
+     reveal in the same way as the user scrolls. The agent's desktop rainbow
+     gradient is replaced here with a single accent (purple) — visually coherent
+     with the action palette and easier to animate as a sweep. */
+  .flow-card-trigger,
+  .flow-card-ai {
+    width: 100%;
+    max-width: 420px;
+    min-width: 0;
+    margin-inline: auto;
+    --draw: clamp(0, calc((var(--build, 0) - var(--step, 0)) * 12), 1);
+    border: 1.5px solid transparent;
+    background:
+      linear-gradient(#14141c, #14141c) padding-box,
+      conic-gradient(from -90deg at 50% 50%,
+        var(--c) calc(var(--draw) * 1turn),
+        transparent 0) border-box;
+    box-shadow: 0 14px 28px -22px color-mix(in srgb, var(--c) calc(var(--draw) * 80%), transparent);
+  }
+  .flow-card-trigger { --c: #22c55e; }
+  .flow-card-ai { --c: #a78bfa; padding: 12px 18px; }
+  .flow-card-ai .fc-avatar { width: 40px; height: 40px; }
+  .flow-card-ai .fc-label strong { font-size: 14px; line-height: 1.2; }
+  .flow-card-ai .fc-label em { font-size: 12px; }
+
+  /* Single-column stack centered under the agent. Max-width keeps cards from
+     stretching too wide on tablets where 100vw is still generous. */
+  .flow-actions-area {
+    direction: rtl;
+    padding-top: 0;
+    margin-top: 22px;
+    max-width: 420px;
+    margin-inline: auto;
+  }
+  .flow-actions-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    row-gap: 26px;            /* room for the per-card stem + dot */
+    column-gap: 0;
+  }
+  .flow-card-action.a-row1,
+  .flow-card-action.a-row2,
+  .flow-card-action.a-row3,
+  .flow-card-action.a-col1,
+  .flow-card-action.a-col2,
+  .flow-card-action.a-col3,
+  .flow-card-action.a-col4 { grid-row: auto; grid-column: auto; }
+
+  /* Stem from the agent down into the first action card */
   .flow-actions-area::before {
     content: "";
     position: absolute;
-    top: -14px; left: 50%; transform: translateX(-50%);
-    width: 2px; height: 14px;
-    background: rgba(255,255,255,0.2);
+    top: -22px; left: 50%; transform: translateX(-50%);
+    width: 2px; height: 22px;
+    background: linear-gradient(180deg, rgba(167, 139, 250, 0.6), rgba(167, 139, 250, 0.2));
+    border-radius: 1px;
+  }
+
+  /* Each action card gets its own coloured stem + dot connecting it to the card
+     above. Colour comes from the card's own --c, so the connector inherits the
+     pink/blue/green/purple/cyan palette already used on the borders. */
+  .flow-card-action {
+    width: 100%;
+    position: relative;
+    overflow: visible;
+    /* --draw goes 0..1 as the card's --step is crossed by --build. It drives
+       both the conic-gradient border sweep and the stem/dot fade-in below. */
+    --draw: clamp(0, calc((var(--build, 0) - var(--step, 0)) * 12), 1);
+    /* Replace the static colored border + outer-ring shadow with a conic gradient
+       that "draws" the border clockwise from the top edge as --draw grows. The
+       linear-gradient layer keeps the inner card surface solid; the conic layer
+       only paints the border-box ring around it. */
+    border: 1.5px solid transparent;
+    background:
+      linear-gradient(#14141c, #14141c) padding-box,
+      conic-gradient(from -90deg at 50% 50%,
+        var(--c) calc(var(--draw) * 1turn),
+        transparent 0) border-box;
+    box-shadow: 0 14px 28px -22px color-mix(in srgb, var(--c) calc(var(--draw) * 80%), transparent);
+  }
+  /* Sub-row cards keep their slightly darker inner surface */
+  .flow-card-sub {
+    background:
+      linear-gradient(#10101a, #10101a) padding-box,
+      conic-gradient(from -90deg at 50% 50%,
+        var(--c) calc(var(--draw) * 1turn),
+        transparent 0) border-box;
+  }
+  .flow-card-action::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    width: 2px; height: 18px;
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--c) 22%, transparent),
+      color-mix(in srgb, var(--c) 70%, transparent));
+    transform: translateX(-50%);
+    border-radius: 1px;
+    opacity: var(--draw);
+  }
+  .flow-card-action::after {
+    content: "";
+    position: absolute;
+    bottom: calc(100% + 14px);
+    left: 50%;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--c);
+    transform: translateX(-50%);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--c) 70%, transparent);
+    opacity: var(--draw);
+  }
+  /* The card content itself fades in slightly later than the border starts to
+     draw — the empty outline appears first, then the icon + label fill in. */
+  .flow-card-action .fc-icon,
+  .flow-card-action .fc-label {
+    opacity: clamp(0, calc((var(--build, 0) - var(--step, 0) - 0.04) * 14), 1);
+  }
+
+  /* All action cards align flush in the same column on mobile — the hierarchy is
+     already conveyed by the colored stems + dots, and indents look like
+     misalignment in a narrow viewport. */
+  .flow-card-action.flow-card-sub,
+  .flow-card-action.a-row3 { margin-inline-start: 0; }
+
+  /* Reduced-motion: paint everything at the final state immediately. */
+  @media (prefers-reduced-motion: reduce) {
+    .flow-card-action { --draw: 1; }
+    .flow-card-action .fc-icon,
+    .flow-card-action .fc-label { opacity: 1; }
+    .flow-build .flow-reveal-line { height: 22px; opacity: 1; }
   }
 }
 
@@ -548,81 +771,135 @@ section.block.alt { background: var(--bg-soft); }
   margin: 0 auto;
   line-height: 1.55;
 }
-/* Infinite marquee row — JS sets each avatar's --s based on viewport-x position
-   so the one in the middle is biggest and they fade in size toward both edges. */
-.team-marquee {
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  margin-left: -50vw;            /* full-bleed: escape the container's max-width */
-  margin-top: 30px;
-  overflow: hidden;
-  direction: ltr;                /* anchor the row to the LEFT so translateX moves it predictably */
-}
-.team-row {
+/* Static 5×2 grid of personas. Each member sits in its own circular halo so the
+   coloured glows can't bleed into a continuous panel like they did in the old
+   marquee. Halos cycle through the brand palette, the avatar PNGs are transparent
+   so they sit cleanly on the section background, and a stagger fade-in on scroll
+   gives the section a small bit of motion as it enters the viewport. */
+.team-grid {
   list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(20px, 3vw, 44px);
+  max-width: 1100px;
+  margin: 56px auto 0;
+  padding: 0;
+  /* The whole grid is forced LTR so :nth-child(N) advances the way you'd expect
+     when reading our hard-coded color cycle below; per-card content stays RTL
+     via the section default. */
   direction: ltr;
+}
+.team-member {
+  position: relative;
+  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
-  gap: 0;
-  width: max-content;
-  padding: 0;
-  margin: 0;
-  min-height: clamp(140px, 24vw, 240px);  /* reserve space so the section is visible even before JS runs */
+  justify-content: center;
+  /* Per-card stagger: each card waits (i * 0.04) of section progress before it
+     starts revealing, then takes ~0.18 progress to finish. */
+  --p: clamp(0, calc((var(--reveal, 1) - var(--i, 0) * 0.04) * 5.5), 1);
+  opacity: var(--p);
+  transform: translateY(calc((1 - var(--p)) * 16px));
+  transition: opacity 0.2s linear, transform 0.2s linear;
+  will-change: opacity, transform;
+}
+.team-halo {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%, var(--tint, rgba(236, 76, 106, 0.45)), transparent 70%);
+  filter: blur(20px);
+  z-index: 0;
+  pointer-events: none;
+  transform: scale(calc(0.85 + var(--p) * 0.15));
+  transform-origin: center;
+  transition: transform 0.4s ease-out;
+}
+.team-member img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.45));
+  /* Each persona uses one of 5 float keyframes (assigned per :nth-child below)
+     with its own duration and a negative delay so the cycle is mid-motion on
+     mount — together this prevents any two avatars from drifting in sync. */
+  animation: team-float-a 7s ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
   will-change: transform;
 }
 
-.team-avatar {
-  --tint: rgba(236, 76, 106, 0.22);
-  --s: 1;
-  --size: clamp(64px, 9vw, 120px);
-  width: var(--size);
-  height: var(--size);                     /* explicit so it works without aspect-ratio support */
-  aspect-ratio: 1 / 1;
-  position: relative;
-  scale: var(--s);
-  transform: scale(var(--s));              /* fallback for browsers without standalone 'scale' */
-  transform-origin: center center;
-  transition: scale 0.08s linear, transform 0.08s linear;
-  will-change: scale, transform;
-  flex-shrink: 0;
+/* 5 distinct float paths — gentle drifts in different directions and a hint of
+   rotation. Each keyframe stays inside a few px so the motion reads as 'floating'
+   rather than bouncing. */
+@keyframes team-float-a {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25%      { transform: translate(2px, -5px) rotate(-1.2deg); }
+  50%      { transform: translate(-1px, -8px) rotate(0.8deg); }
+  75%      { transform: translate(-3px, -3px) rotate(-0.4deg); }
 }
-/* Pink glow halo behind each avatar */
-.team-avatar::before {
-  content: "";
-  position: absolute;
-  inset: -20%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(236, 76, 106, 0.45), rgba(236, 76, 106, 0) 65%);
-  filter: blur(14px);
-  z-index: 0;
-  pointer-events: none;
+@keyframes team-float-b {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20%      { transform: translate(-3px, -4px) rotate(1deg); }
+  45%      { transform: translate(2px, -7px) rotate(-0.6deg); }
+  70%      { transform: translate(4px, -2px) rotate(1.3deg); }
 }
-.team-avatar > * { position: relative; z-index: 1; }
-/* Inner circle holding the cropped character */
-.team-avatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: center 35%;
-  background:
-    radial-gradient(circle at 50% 35%, var(--tint), rgba(255, 255, 255, 0.04) 70%),
-    #1c1c25;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  display: block;
+@keyframes team-float-c {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  30%      { transform: translate(-2px, -6px) rotate(-0.8deg); }
+  55%      { transform: translate(3px, -9px) rotate(1.5deg); }
+  80%      { transform: translate(1px, -3px) rotate(-0.6deg); }
 }
-/* Cycling tints across the (doubled) list */
-.team-avatar:nth-child(10n+1)  { --tint: rgba(236, 76, 106, 0.22); }
-.team-avatar:nth-child(10n+2)  { --tint: rgba(167, 139, 250, 0.22); }
-.team-avatar:nth-child(10n+3)  { --tint: rgba(96, 165, 250, 0.22); }
-.team-avatar:nth-child(10n+4)  { --tint: rgba(94, 234, 212, 0.22); }
-.team-avatar:nth-child(10n+5)  { --tint: rgba(251, 191, 36, 0.22); }
-.team-avatar:nth-child(10n+6)  { --tint: rgba(236, 76, 106, 0.22); }
-.team-avatar:nth-child(10n+7)  { --tint: rgba(167, 139, 250, 0.22); }
-.team-avatar:nth-child(10n+8)  { --tint: rgba(94, 234, 212, 0.22); }
-.team-avatar:nth-child(10n+9)  { --tint: rgba(96, 165, 250, 0.22); }
-.team-avatar:nth-child(10n)    { --tint: rgba(251, 191, 36, 0.22); }
+@keyframes team-float-d {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  22%      { transform: translate(4px, -3px) rotate(0.6deg); }
+  48%      { transform: translate(-2px, -6px) rotate(-1.4deg); }
+  74%      { transform: translate(-4px, -1px) rotate(0.4deg); }
+}
+@keyframes team-float-e {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  28%      { transform: translate(-1px, -7px) rotate(1.1deg); }
+  52%      { transform: translate(2px, -4px) rotate(-1deg); }
+  78%      { transform: translate(-3px, -8px) rotate(0.7deg); }
+}
+
+/* Cycling tints + paired float keyframes/durations across the 10 personas. The
+   varied durations + negative delays guarantee no two cards advance together. */
+.team-member:nth-child(10n+1)  { --tint: rgba(236, 76, 106, 0.50); --float-delay: -1.4s; }
+.team-member:nth-child(10n+2)  { --tint: rgba(167, 139, 250, 0.50); --float-delay: -3.2s; }
+.team-member:nth-child(10n+3)  { --tint: rgba(96, 165, 250, 0.50); --float-delay: -0.6s; }
+.team-member:nth-child(10n+4)  { --tint: rgba(94, 234, 212, 0.50); --float-delay: -4.8s; }
+.team-member:nth-child(10n+5)  { --tint: rgba(251, 191, 36, 0.50); --float-delay: -2.1s; }
+.team-member:nth-child(10n+6)  { --tint: rgba(236, 76, 106, 0.50); --float-delay: -3.7s; }
+.team-member:nth-child(10n+7)  { --tint: rgba(167, 139, 250, 0.50); --float-delay: -0.9s; }
+.team-member:nth-child(10n+8)  { --tint: rgba(94, 234, 212, 0.50); --float-delay: -5.3s; }
+.team-member:nth-child(10n+9)  { --tint: rgba(96, 165, 250, 0.50); --float-delay: -2.4s; }
+.team-member:nth-child(10n+10) { --tint: rgba(251, 191, 36, 0.50); --float-delay: -4.1s; }
+
+/* Pair each persona slot with a different keyframe + duration combo */
+.team-member:nth-child(10n+1)  img { animation-name: team-float-a; animation-duration: 7s; }
+.team-member:nth-child(10n+2)  img { animation-name: team-float-b; animation-duration: 8.5s; }
+.team-member:nth-child(10n+3)  img { animation-name: team-float-c; animation-duration: 6.2s; }
+.team-member:nth-child(10n+4)  img { animation-name: team-float-d; animation-duration: 9s; }
+.team-member:nth-child(10n+5)  img { animation-name: team-float-e; animation-duration: 7.4s; }
+.team-member:nth-child(10n+6)  img { animation-name: team-float-c; animation-duration: 8s; }
+.team-member:nth-child(10n+7)  img { animation-name: team-float-a; animation-duration: 9.6s; }
+.team-member:nth-child(10n+8)  img { animation-name: team-float-d; animation-duration: 6.8s; }
+.team-member:nth-child(10n+9)  img { animation-name: team-float-b; animation-duration: 7.8s; }
+.team-member:nth-child(10n+10) img { animation-name: team-float-e; animation-duration: 8.3s; }
+
+@media (max-width: 880px) {
+  .team-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 36px; }
+}
+@media (max-width: 480px) {
+  .team-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .team-member { opacity: 1; transform: none; }
+  .team-halo { transform: none; }
+  .team-member img { animation: none; }
+}
 .final-cta h2 {
   font-weight: 900;
   font-size: clamp(24px, 3.4vw, 38px);

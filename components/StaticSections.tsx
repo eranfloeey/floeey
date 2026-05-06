@@ -53,6 +53,9 @@ const Icon = {
   TrendingUp: () => (
     <svg viewBox="0 0 24 24" {...stroke}><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
   ),
+  Notes: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+  ),
 };
 
 // Sections below the hero (benefits + how-it-works + final CTA + team + footer).
@@ -64,72 +67,8 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
   const flyerRef = useRef<HTMLImageElement>(null);
   const armSectionRef = useRef<HTMLElement>(null);
   const armRef = useRef<HTMLImageElement>(null);
-  const teamRowRef = useRef<HTMLUListElement>(null);
-
-  // Scroll-driven infinite avatar marquee:
-  //  - Page scroll-down moves the row right-to-left; scroll-up reverses
-  //  - Modulo wrap on the doubled list = truly infinite in both directions
-  //  - Each avatar's --s scales by distance from viewport horizontal center (center biggest)
-  useEffect(() => {
-    const row = teamRowRef.current;
-    if (!row) return;
-
-    const SCROLL_SPEED = 0.6;     // px of horizontal travel per px of vertical scroll
-    let lastScrollY = window.scrollY;
-    let offset = window.scrollY * SCROLL_SPEED;   // align with current scroll on mount
-    let raf = 0;
-    let pending = false;
-
-    const apply = () => {
-      pending = false;
-      const cycle = row.scrollWidth / 3;    // tripled list -> wrap at 1/3
-      if (cycle > 0) {
-        offset = ((offset % cycle) + cycle) % cycle;
-        row.style.transform = `translate3d(${-offset}px, 0, 0)`;
-      }
-      // Per-avatar scale: a center PLATEAU (~3 avatars at max) then a sharp drop-off
-      const vw = window.innerWidth;
-      const cx = vw / 2;
-      const items = row.querySelectorAll<HTMLElement>(".team-avatar");
-      const MAX = 1.55, MIN = 0.25;
-      const PLATEAU = 0.12;          // ~12% of viewport half-width is full-size
-      items.forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        const elCx = rect.left + rect.width / 2;
-        const dist = Math.min(1, Math.abs(elCx - cx) / (vw / 2));
-        let scale;
-        if (dist < PLATEAU) {
-          scale = MAX;
-        } else {
-          const t = (dist - PLATEAU) / (1 - PLATEAU);   // 0..1 outside plateau
-          scale = MAX - (MAX - MIN) * Math.pow(t, 1.4);
-        }
-        el.style.setProperty("--s", scale.toFixed(3));
-      });
-    };
-
-    const schedule = () => {
-      if (pending) return;
-      pending = true;
-      raf = requestAnimationFrame(apply);
-    };
-
-    const onScroll = () => {
-      const y = window.scrollY;
-      offset += (y - lastScrollY) * SCROLL_SPEED;
-      lastScrollY = y;
-      schedule();
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", schedule);
-    schedule();   // initial paint
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", schedule);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
+  const teamSectionRef = useRef<HTMLElement>(null);
+  const flowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function progressFor(el: HTMLElement) {
@@ -140,6 +79,26 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
       return Math.max(0, Math.min(1, traveled / total));
     }
 
+    function buildProgress(el: HTMLElement) {
+      // Map scroll so the flowchart "builds itself" as it crosses the viewport.
+      //   start: when the section's top is this far down the viewport, build = 0.
+      //   end:   when the section's top is this far up the viewport, build = 1.
+      // The desktop range is now ~1.15*vh of scroll (vs the previous 0.65*vh)
+      // so the animation reads at a comfortable scroll pace instead of flashing
+      // through. On mobile the .flow stack is much taller than the viewport, so
+      // we stretch end further so progress only completes around the time the
+      // section's mid-point passes the top of viewport.
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 880px)").matches;
+      const start = isMobile ? vh * 0.85 : vh * 1.05;
+      const end = isMobile
+        ? Math.min(vh * 0.20, vh * 0.5 - rect.height)
+        : vh * -0.45;
+      if (start === end) return 0;
+      return Math.max(0, Math.min(1, (start - rect.top) / (start - end)));
+    }
+
     let ticking = false;
     const update = () => {
       if (flyerSectionRef.current && flyerRef.current) {
@@ -147,6 +106,12 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
       }
       if (armSectionRef.current && armRef.current) {
         armRef.current.style.setProperty("--p", progressFor(armSectionRef.current).toFixed(4));
+      }
+      if (flowRef.current) {
+        flowRef.current.style.setProperty("--build", buildProgress(flowRef.current).toFixed(4));
+      }
+      if (teamSectionRef.current) {
+        teamSectionRef.current.style.setProperty("--reveal", progressFor(teamSectionRef.current).toFixed(4));
       }
       ticking = false;
     };
@@ -262,61 +227,102 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
             </p>
           </div>
 
-          <div className="flow">
+          {/* The whole chart receives a --build (0..1) that ramps with scroll; child
+              elements opt-in via inline --step thresholds for a sequential reveal. */}
+          <div className="flow flow-build" ref={flowRef}>
             {/* TRIGGER */}
-            <div className="flow-card flow-card-trigger">
-              <span className="fc-badge fc-badge-trigger"><Icon.Bolt /></span>
+            <div className="flow-card flow-card-trigger flow-reveal" style={{ ["--step" as string]: 0.02 }}>
               <span className="fc-icon"><Icon.Phone /></span>
               <span className="fc-label">כשנכנסת שיחה</span>
             </div>
 
-            <div className="flow-line" aria-hidden="true"></div>
+            <div className="flow-line flow-reveal-line" style={{ ["--step" as string]: 0.10 }} aria-hidden="true"></div>
 
             {/* AI AGENT */}
-            <div className="flow-card flow-card-ai">
-              <span className="fc-badge fc-badge-ai"><Icon.Sparkle /></span>
+            <div className="flow-card flow-card-ai flow-reveal" style={{ ["--step" as string]: 0.14 }}>
               <img className="fc-avatar" src="/img/menachem-linkedin.png" alt="" aria-hidden="true" />
               <span className="fc-label">
                 <strong>מנחם</strong>
-                <em>סוכן הקול שלכם</em>
+                <em>הסוכן הקולי שלכם- דואג להכל!</em>
               </span>
             </div>
 
-            {/* FAN-OUT + ACTIONS — overlay SVG draws an orthogonal "wire" from the agent
-                to each of the 8 cards in a 4-column / 2-row grid. */}
+            {/* 4 primary actions branch from the agent; 3 of them get a follow-up below.
+                LTR column centers in the 1100-wide viewBox: 137.5, 412.5, 687.5, 962.5.
+                Row 2 sits under LTR cols 1..3 (RTL pos 4..2 visually). */}
             <div className="flow-actions-area">
               <svg
                 className="flow-wires"
-                viewBox="0 0 1100 360"
+                viewBox="0 0 1100 344"
                 preserveAspectRatio="none"
                 aria-hidden="true"
               >
-                <defs>
-                  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-                    <path d="M0,0 L10,5 L0,10 Z" fill="rgba(255,255,255,0.42)" />
-                  </marker>
-                </defs>
-                {/* split bus from agent down to each of the 4 columns, ending at the top of row-1 cards */}
-                <path d="M550,0 V40 H131 V116" markerEnd="url(#arr)" />
-                <path d="M550,0 V40 H410 V116" markerEnd="url(#arr)" />
-                <path d="M550,0 V40 H690 V116" markerEnd="url(#arr)" />
-                <path d="M550,0 V40 H969 V116" markerEnd="url(#arr)" />
-                {/* row-1 to row-2 chain in each column */}
-                <path d="M131,220 V336" markerEnd="url(#arr)" />
-                <path d="M410,220 V336" markerEnd="url(#arr)" />
-                <path d="M690,220 V336" markerEnd="url(#arr)" />
-                <path d="M969,220 V336" markerEnd="url(#arr)" />
+                {/* Agent -> 4 primaries. Each path is normalized to pathLength=100 so the
+                    same calc in CSS draws every wire from start to end the same way.
+                    y=0 sits at the top of .flow-actions-area (which has padding-top:60px),
+                    y=60 is the top of row 1, y=136 its bottom, y=164 the top of row 2,
+                    y=240 its bottom, y=268 the top of row 3, y=344 its bottom. */}
+                <path className="wire" pathLength={100} style={{ ["--step" as string]: 0.18 }} d="M550,0 V20 H137.5 V60" />
+                <path className="wire" pathLength={100} style={{ ["--step" as string]: 0.22 }} d="M550,0 V20 H412.5 V60" />
+                <path className="wire" pathLength={100} style={{ ["--step" as string]: 0.26 }} d="M550,0 V20 H687.5 V60" />
+                <path className="wire" pathLength={100} style={{ ["--step" as string]: 0.30 }} d="M550,0 V20 H962.5 V60" />
+                {/* Drops to the 3 follow-ups under LTR cols 1..3 */}
+                <path className="wire" pathLength={100} style={{ ["--step" as string]: 0.42 }} d="M137.5,136 V164" />
+                <path className="wire" pathLength={100} style={{ ["--step" as string]: 0.48 }} d="M412.5,136 V164" />
+                <path className="wire" pathLength={100} style={{ ["--step" as string]: 0.54 }} d="M687.5,136 V164" />
+                {/* Row 2 -> row 3: only קביעת פגישה (col 2) gets a follow-up */}
+                <path className="wire" pathLength={100} style={{ ["--step" as string]: 0.62 }} d="M412.5,240 V268" />
+
+                {/* Junction dots — one at the agent fan-out and one at every wire endpoint */}
+                <circle className="wire-dot" style={{ ["--step" as string]: 0.16 }} cx="550" cy="20" r="4" />
+                <circle className="wire-dot" style={{ ["--step" as string]: 0.20 }} cx="137.5" cy="60" r="3.5" />
+                <circle className="wire-dot" style={{ ["--step" as string]: 0.24 }} cx="412.5" cy="60" r="3.5" />
+                <circle className="wire-dot" style={{ ["--step" as string]: 0.28 }} cx="687.5" cy="60" r="3.5" />
+                <circle className="wire-dot" style={{ ["--step" as string]: 0.32 }} cx="962.5" cy="60" r="3.5" />
+                <circle className="wire-dot" style={{ ["--step" as string]: 0.44 }} cx="137.5" cy="164" r="3.5" />
+                <circle className="wire-dot" style={{ ["--step" as string]: 0.50 }} cx="412.5" cy="164" r="3.5" />
+                <circle className="wire-dot" style={{ ["--step" as string]: 0.56 }} cx="687.5" cy="164" r="3.5" />
+                <circle className="wire-dot" style={{ ["--step" as string]: 0.64 }} cx="412.5" cy="268" r="3.5" />
               </svg>
 
               <div className="flow-actions-grid">
-                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.CreditCard /></span><span className="fc-label">קישור לתשלום</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Chat /></span><span className="fc-label">שליחת WhatsApp</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Calendar /></span><span className="fc-label">קביעת פגישה</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Chart /></span><span className="fc-label">פתיחת ליד ב-CRM</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Receipt /></span><span className="fc-label">הפקת חשבונית</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Package /></span><span className="fc-label">בדיקת משלוח</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Contract /></span><span className="fc-label">חוזה לחתימה</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.PhoneForward /></span><span className="fc-label">העברת שיחה</span></div>
+                {/* Row 1 — primary actions (4). LTR col order: package(purple), whatsapp(green),
+                    crm(blue), transfer(red). Visually in RTL Hebrew that reads
+                    transfer→crm→whatsapp→package right-to-left, matching the reference. */}
+                <div className="flow-card flow-card-action a-row1 a-col1 c-purple flow-reveal" style={{ ["--step" as string]: 0.20 }}>
+                  <span className="fc-icon"><Icon.Package /></span>
+                  <span className="fc-label">בדיקת משלוח</span>
+                </div>
+                <div className="flow-card flow-card-action a-row1 a-col2 c-green flow-reveal" style={{ ["--step" as string]: 0.24 }}>
+                  <span className="fc-icon"><Icon.Chat /></span>
+                  <span className="fc-label">שליחת WhatsApp</span>
+                </div>
+                <div className="flow-card flow-card-action a-row1 a-col3 c-blue flow-reveal" style={{ ["--step" as string]: 0.28 }}>
+                  <span className="fc-icon"><Icon.Chart /></span>
+                  <span className="fc-label">פתיחת ליד ב-CRM</span>
+                </div>
+                <div className="flow-card flow-card-action a-row1 a-col4 c-pink flow-reveal" style={{ ["--step" as string]: 0.32 }}>
+                  <span className="fc-icon"><Icon.PhoneForward /></span>
+                  <span className="fc-label">העברת שיחה</span>
+                </div>
+                {/* Row 2 — follow-ups (3) under LTR cols 1..3 */}
+                <div className="flow-card flow-card-action flow-card-sub a-row2 a-col1 c-cyan flow-reveal" style={{ ["--step" as string]: 0.44 }}>
+                  <span className="fc-icon"><Icon.CreditCard /></span>
+                  <span className="fc-label">קישור לתשלום</span>
+                </div>
+                <div className="flow-card flow-card-action flow-card-sub a-row2 a-col2 c-purple flow-reveal" style={{ ["--step" as string]: 0.50 }}>
+                  <span className="fc-icon"><Icon.Calendar /></span>
+                  <span className="fc-label">קביעת פגישה</span>
+                </div>
+                <div className="flow-card flow-card-action flow-card-sub a-row2 a-col3 c-pink flow-reveal" style={{ ["--step" as string]: 0.56 }}>
+                  <span className="fc-icon"><Icon.Receipt /></span>
+                  <span className="fc-label">הפקת חשבונית</span>
+                </div>
+                {/* Row 3 — single follow-up under קביעת פגישה (LTR col 2) */}
+                <div className="flow-card flow-card-action flow-card-sub a-row3 a-col2 c-purple flow-reveal" style={{ ["--step" as string]: 0.66 }}>
+                  <span className="fc-icon"><Icon.Notes /></span>
+                  <span className="fc-label">שליחת סיכום פגישה</span>
+                </div>
               </div>
             </div>
           </div>
@@ -343,7 +349,7 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
         </div>
       </section>
 
-      <section className="block team-section">
+      <section className="block team-section" ref={teamSectionRef}>
         <div className="container">
           <div className="section-head">
             <h2>
@@ -356,16 +362,17 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
               הסוכן מדבר בקול שאתם תבחרו, זכר או נקבה, והוא מכיר את העסק שלכם כאילו היה בעל הבית!
             </p>
           </div>
-          <div className="team-marquee">
-            <ul className="team-row" ref={teamRowRef} aria-label="צוות סוכני פלואי">
-              {/* Tripled list — guarantees the viewport is always filled and modulo-wrap is invisible */}
-              {Array.from({ length: 3 }).flatMap(() => [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]).map((n, i) => (
-                <li key={i} className="team-avatar">
-                  <img src={`/img/team/${n}.png`} alt="" aria-hidden="true" />
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Static 5×2 grid of personas — each avatar lives in its own framed
+              circular halo, so no neighbouring glows can blend into a panel.
+              The --i index drives a per-card stagger reveal on scroll. */}
+          <ul className="team-grid" aria-label="צוות סוכני פלואי">
+            {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((n, i) => (
+              <li key={n} className="team-member" style={{ ["--i" as string]: i }}>
+                <span className="team-halo" aria-hidden="true" />
+                <img src={`/img/team/${n}.png`} alt="" aria-hidden="true" />
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
