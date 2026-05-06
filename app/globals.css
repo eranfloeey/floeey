@@ -318,6 +318,61 @@ section.block.alt { background: var(--bg-soft); }
   background:
     radial-gradient(800px 400px at 50% 0%, rgba(236, 76, 106, 0.25), transparent 70%),
     var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Tentacle arm: emerges from the right of the final CTA, drifts up & out as you scroll */
+.arm {
+  position: absolute;
+  width: clamp(180px, 22vw, 320px);
+  z-index: 2;
+  pointer-events: none;
+  --p: 0;
+  right: calc(-25% + var(--p) * 18%);          /* peeks in as it rises */
+  bottom: calc(-20% + var(--p) * 140%);
+  transform: rotate(calc(-10deg + var(--p) * -28deg));
+  filter: drop-shadow(-12px 16px 24px rgba(0, 0, 0, 0.5));
+  will-change: transform, right, bottom;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arm { display: none; }
+}
+
+/* === Team section ('מנחם Unlimited') === */
+.team-section { padding-top: 80px; padding-bottom: 100px; }
+.team-section .section-head { margin-bottom: 36px; }
+.team-section h2 {
+  font-weight: 900;
+  font-size: clamp(40px, 6.4vw, 84px);
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+.team-section h2 .unlimited {
+  background: linear-gradient(90deg, #a78bfa 0%, #60a5fa 50%, #5eead4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.team-section .lead-sub {
+  font-size: clamp(20px, 2.4vw, 28px);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+}
+.team-section .section-head p:last-of-type {
+  font-size: 17px;
+  color: var(--text-muted);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+.team-img {
+  display: block;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 .final-cta h2 {
   font-weight: 900;

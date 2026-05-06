@@ -2,26 +2,35 @@
 
 import { useEffect, useRef } from "react";
 
-// Sections below the hero (benefits + how-it-works + final CTA + footer).
-// Includes the parallax flying-Menachem hooked to scroll progress.
+// Sections below the hero (benefits + how-it-works + final CTA + team + footer).
+// Two scroll-driven parallax pieces:
+//  1. Flying Menachem across the benefits section (bottom-right -> top-left)
+//  2. Tentacle arm reaching from the right of the final CTA, sliding up & out as you scroll
 export default function StaticSections({ onOpenModal }: { onOpenModal: () => void }) {
-  const sectionRef = useRef<HTMLElement>(null);
+  const flyerSectionRef = useRef<HTMLElement>(null);
   const flyerRef = useRef<HTMLImageElement>(null);
+  const armSectionRef = useRef<HTMLElement>(null);
+  const armRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    const flyer = flyerRef.current;
-    if (!section || !flyer) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    let ticking = false;
-    const update = () => {
-      const rect = section.getBoundingClientRect();
+    function progressFor(el: HTMLElement) {
+      const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
       const total = rect.height + vh;
       const traveled = vh - rect.top;
-      const p = Math.max(0, Math.min(1, traveled / total));
-      flyer.style.setProperty("--p", p.toFixed(4));
+      return Math.max(0, Math.min(1, traveled / total));
+    }
+
+    let ticking = false;
+    const update = () => {
+      if (flyerSectionRef.current && flyerRef.current) {
+        flyerRef.current.style.setProperty("--p", progressFor(flyerSectionRef.current).toFixed(4));
+      }
+      if (armSectionRef.current && armRef.current) {
+        armRef.current.style.setProperty("--p", progressFor(armSectionRef.current).toFixed(4));
+      }
       ticking = false;
     };
     const onScroll = () => {
@@ -41,7 +50,7 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
 
   return (
     <>
-      <section className="block alt flyer-section" ref={sectionRef}>
+      <section className="block alt flyer-section" ref={flyerSectionRef}>
         <img
           className="flyer"
           src="/img/menachem-flying.png"
@@ -125,7 +134,14 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
         </div>
       </section>
 
-      <section className="final-cta">
+      <section className="final-cta arm-section" ref={armSectionRef}>
+        <img
+          className="arm"
+          src="/img/menachem-arm.png"
+          alt=""
+          aria-hidden="true"
+          ref={armRef}
+        />
         <div className="container">
           <h2>
             "הנחמה הגדולה ביותר<br />
@@ -135,6 +151,23 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
           <button className="cta-pill" onClick={onOpenModal}>
             מנחם תתקשר אלי!
           </button>
+        </div>
+      </section>
+
+      <section className="block team-section">
+        <div className="container">
+          <div className="section-head">
+            <h2>
+              <span className="m">מנחם</span> <span className="unlimited">Unlimited</span>
+            </h2>
+            <p className="lead-sub">
+              לסוכן שלנו קוראים <span className="m">מנחם</span>, ולשלך?
+            </p>
+            <p>
+              הסוכן מדבר בקול שאתם תבחרו, זכר או נקבה, והוא מכיר את העסק שלכם כאילו היה בעל הבית!
+            </p>
+          </div>
+          <img className="team-img" src="/img/team.png" alt="צוות הסוכנים של פלואי" />
         </div>
       </section>
 
