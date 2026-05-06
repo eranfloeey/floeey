@@ -87,18 +87,23 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
         offset = ((offset % cycle) + cycle) % cycle;
         row.style.transform = `translate3d(${-offset}px, 0, 0)`;
       }
-      // Per-avatar scale: sharp peak at viewport horizontal center
+      // Per-avatar scale: a center PLATEAU (~3 avatars at max) then a sharp drop-off
       const vw = window.innerWidth;
       const cx = vw / 2;
       const items = row.querySelectorAll<HTMLElement>(".team-avatar");
-      const MAX = 1.6, MIN = 0.32;
+      const MAX = 1.55, MIN = 0.25;
+      const PLATEAU = 0.12;          // ~12% of viewport half-width is full-size
       items.forEach((el) => {
         const rect = el.getBoundingClientRect();
         const elCx = rect.left + rect.width / 2;
         const dist = Math.min(1, Math.abs(elCx - cx) / (vw / 2));
-        // power curve <1 -> sharp peak so neighbors fall off fast
-        const t = Math.pow(dist, 0.42);
-        const scale = MAX - (MAX - MIN) * t;
+        let scale;
+        if (dist < PLATEAU) {
+          scale = MAX;
+        } else {
+          const t = (dist - PLATEAU) / (1 - PLATEAU);   // 0..1 outside plateau
+          scale = MAX - (MAX - MIN) * Math.pow(t, 1.4);
+        }
         el.style.setProperty("--s", scale.toFixed(3));
       });
     };

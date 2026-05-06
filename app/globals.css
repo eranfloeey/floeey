@@ -562,9 +562,9 @@ section.block.alt { background: var(--bg-soft); }
   list-style: none;
   display: flex;
   align-items: center;
-  gap: 6px;                              /* a little air between avatars */
+  gap: 0;
   width: max-content;
-  padding: 70px 0;                       /* room for the scaled-up center (1.6x) */
+  padding: 70px 0;                       /* room for the scaled-up center (1.55x) */
   will-change: transform;
 }
 
