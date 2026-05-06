@@ -2,6 +2,59 @@
 
 import { useEffect, useRef } from "react";
 
+// Crisp line icons (Lucide-inspired) — replace emoji to look intentional, not AI-generated.
+const stroke = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
+const Icon = {
+  Bolt: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+  ),
+  Sparkle: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
+  ),
+  Phone: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+  ),
+  CreditCard: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
+  ),
+  Chat: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  ),
+  Calendar: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+  ),
+  Chart: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+  ),
+  Receipt: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+  ),
+  Package: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg>
+  ),
+  Contract: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 14l2 2 4-4"/></svg>
+  ),
+  PhoneForward: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M18 2l4 4-4 4M14 6h8"/><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+  ),
+  Clock: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+  ),
+  Check: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+  ),
+  TrendingUp: () => (
+    <svg viewBox="0 0 24 24" {...stroke}><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+  ),
+};
+
 // Sections below the hero (benefits + how-it-works + final CTA + team + footer).
 // Two scroll-driven parallax pieces:
 //  1. Flying Menachem across the benefits section (bottom-right -> top-left)
@@ -67,24 +120,24 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
           </div>
           <div className="benefits">
             <div className="benefit">
-              <div className="icon">⚡</div>
+              <div className="icon"><Icon.Bolt /></div>
               <h4>מענה תוך שניות</h4>
               <p>כל פנייה נענית מיד. לא תור, לא המתנה, לא לידים שמתקררים.</p>
             </div>
             <div className="benefit">
-              <div className="icon">🕐</div>
+              <div className="icon"><Icon.Clock /></div>
               <h4>זמין 24/7</h4>
               <p>
                 גם בלילה, גם כשאתה בפגישה. <span className="m">מנחם</span> תמיד שם.
               </p>
             </div>
             <div className="benefit">
-              <div className="icon">✓</div>
+              <div className="icon"><Icon.Check /></div>
               <h4>לא מפספס אף ליד</h4>
               <p>כל שיחה נענית, כל ליד נרשם, כל הזדמנות עוברת אליך מסוננת.</p>
             </div>
             <div className="benefit">
-              <div className="icon">📈</div>
+              <div className="icon"><Icon.TrendingUp /></div>
               <h4>יותר לקוחות</h4>
               <p>עסקים שעובדים עם פלואי רואים יותר פניות שהופכות ללקוחות משלמים.</p>
             </div>
@@ -146,8 +199,8 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
           <div className="flow">
             {/* TRIGGER */}
             <div className="flow-card flow-card-trigger">
-              <span className="fc-badge fc-badge-trigger">⚡</span>
-              <span className="fc-icon">📞</span>
+              <span className="fc-badge fc-badge-trigger"><Icon.Bolt /></span>
+              <span className="fc-icon"><Icon.Phone /></span>
               <span className="fc-label">כשנכנסת שיחה</span>
             </div>
 
@@ -155,7 +208,7 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
 
             {/* AI AGENT */}
             <div className="flow-card flow-card-ai">
-              <span className="fc-badge fc-badge-ai">✨</span>
+              <span className="fc-badge fc-badge-ai"><Icon.Sparkle /></span>
               <img className="fc-avatar" src="/img/menachem-linkedin.png" alt="" aria-hidden="true" />
               <span className="fc-label">
                 <strong>מנחם</strong>
@@ -196,14 +249,14 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
               </svg>
 
               <div className="flow-actions-grid">
-                <div className="flow-card flow-card-action"><span className="fc-icon">💳</span><span className="fc-label">קישור לתשלום</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon">💬</span><span className="fc-label">שליחת WhatsApp</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon">📅</span><span className="fc-label">קביעת פגישה</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon">📊</span><span className="fc-label">פתיחת ליד ב-CRM</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon">🧾</span><span className="fc-label">הפקת חשבונית</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon">📦</span><span className="fc-label">בדיקת משלוח</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon">📑</span><span className="fc-label">חוזה לחתימה</span></div>
-                <div className="flow-card flow-card-action"><span className="fc-icon">📞</span><span className="fc-label">העברת שיחה</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.CreditCard /></span><span className="fc-label">קישור לתשלום</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Chat /></span><span className="fc-label">שליחת WhatsApp</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Calendar /></span><span className="fc-label">קביעת פגישה</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Chart /></span><span className="fc-label">פתיחת ליד ב-CRM</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Receipt /></span><span className="fc-label">הפקת חשבונית</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Package /></span><span className="fc-label">בדיקת משלוח</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.Contract /></span><span className="fc-label">חוזה לחתימה</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon"><Icon.PhoneForward /></span><span className="fc-label">העברת שיחה</span></div>
               </div>
             </div>
           </div>

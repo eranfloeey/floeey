@@ -259,8 +259,9 @@ section.block.alt { background: var(--bg-soft); }
   width: 48px; height: 48px; border-radius: 12px;
   background: rgba(236, 76, 106, 0.12); color: var(--brand);
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; margin-bottom: 18px;
+  margin-bottom: 18px;
 }
+.benefit .icon svg { width: 24px; height: 24px; }
 .benefit h4 { font-weight: 700; font-size: 20px; margin-bottom: 8px; }
 .benefit p { color: var(--text-muted); font-size: 15px; }
 
@@ -394,6 +395,7 @@ section.block.alt { background: var(--bg-soft); }
   color: #fff;
   box-shadow: 0 4px 10px -2px rgba(34,197,94,0.5);
 }
+.fc-badge svg { width: 14px; height: 14px; }
 .fc-badge-ai {
   background: linear-gradient(135deg, #a78bfa, #60a5fa);
   box-shadow: 0 4px 10px -2px rgba(120,120,255,0.5);
@@ -405,7 +407,9 @@ section.block.alt { background: var(--bg-soft); }
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,0.06);
+  color: #fff;
 }
+.fc-icon svg { width: 20px; height: 20px; }
 .fc-label {
   display: flex; flex-direction: column;
   font-weight: 700; font-size: 15px;
@@ -491,7 +495,8 @@ section.block.alt { background: var(--bg-soft); }
   gap: 8px;
   background: #14141c;
 }
-.flow-card-action .fc-icon { width: 40px; height: 40px; font-size: 22px; }
+.flow-card-action .fc-icon { width: 44px; height: 44px; }
+.flow-card-action .fc-icon svg { width: 22px; height: 22px; color: var(--brand); }
 .flow-card-action .fc-label { font-size: 13px; font-weight: 700; line-height: 1.25; }
 
 /* Mobile: hide the wires, stack to 2 columns with simple connector */
