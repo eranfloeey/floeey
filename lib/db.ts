@@ -14,6 +14,8 @@ type LocalShape = {
   leads: any[];
   variants: any[];
   pixels: any[];
+  webhooks?: any[];
+  webhook_logs?: any[];
 };
 
 async function loadLocal(): Promise<LocalShape> {
@@ -70,6 +72,30 @@ export async function ensureSchema() {
     enabled     BOOLEAN NOT NULL DEFAULT TRUE,
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`;
+  await vsql`CREATE TABLE IF NOT EXISTS webhooks (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    url         TEXT NOT NULL,
+    form_id     TEXT,                       -- NULL = fires for every form
+    enabled     BOOLEAN NOT NULL DEFAULT TRUE,
+    secret      TEXT,                       -- optional, sent as x-floeey-secret
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`;
+  await vsql`CREATE TABLE IF NOT EXISTS webhook_logs (
+    id              SERIAL PRIMARY KEY,
+    webhook_id      INT NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
+    lead_id         INT,
+    request_body    JSONB,
+    response_status INT,
+    response_body   TEXT,
+    error           TEXT,
+    success         BOOLEAN NOT NULL DEFAULT FALSE,
+    duration_ms     INT,
+    sent_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`;
+  await vsql`CREATE INDEX IF NOT EXISTS webhook_logs_webhook_id_sent_at_idx
+    ON webhook_logs (webhook_id, sent_at DESC)`;
   initialized = true;
 }
 
@@ -94,10 +120,10 @@ export type Lead = {
   extra?: any;
 };
 
-export async function insertLead(l: Lead) {
+export async function insertLead(l: Lead): Promise<number | null> {
   if (HAS_PG) {
     await ensureSchema();
-    await vsql`INSERT INTO leads (
+    const r = await vsql`INSERT INTO leads (
       name, phone, variant_id, referrer, landing_url,
       utm_source, utm_medium, utm_campaign, utm_term, utm_content,
       fbclid, gclid, user_agent, ip, extra
@@ -105,12 +131,14 @@ export async function insertLead(l: Lead) {
       ${l.name}, ${l.phone}, ${l.variant_id ?? null}, ${l.referrer ?? null}, ${l.landing_url ?? null},
       ${l.utm_source ?? null}, ${l.utm_medium ?? null}, ${l.utm_campaign ?? null}, ${l.utm_term ?? null}, ${l.utm_content ?? null},
       ${l.fbclid ?? null}, ${l.gclid ?? null}, ${l.user_agent ?? null}, ${l.ip ?? null}, ${JSON.stringify(l.extra ?? {})}::jsonb
-    )`;
-    return;
+    ) RETURNING id`;
+    return (r.rows[0] as any)?.id ?? null;
   }
   const d = await loadLocal();
-  d.leads.unshift({ ...l, id: Date.now(), created_at: new Date().toISOString() });
+  const id = Date.now();
+  d.leads.unshift({ ...l, id, created_at: new Date().toISOString() });
   await saveLocal(d);
+  return id;
 }
 
 export async function listLeads(limit = 200): Promise<Lead[]> {
@@ -249,4 +277,152 @@ export async function deletePixel(id: number) {
   const d = await loadLocal();
   d.pixels = d.pixels.filter((x: any) => x.id !== id);
   await saveLocal(d);
+}
+
+// ---------- WEBHOOKS ----------
+export type Webhook = {
+  id?: number;
+  name: string;
+  url: string;
+  form_id?: string | null;     // NULL = matches every form
+  enabled: boolean;
+  secret?: string | null;       // optional, sent as x-floeey-secret header
+  created_at?: string;
+  updated_at?: string;
+};
+
+export async function listWebhooks(): Promise<Webhook[]> {
+  if (HAS_PG) {
+    await ensureSchema();
+    const r = await vsql`SELECT * FROM webhooks ORDER BY id ASC`;
+    return r.rows as any;
+  }
+  const d = await loadLocal();
+  return d.webhooks ?? [];
+}
+
+export async function getWebhook(id: number): Promise<Webhook | null> {
+  if (HAS_PG) {
+    await ensureSchema();
+    const r = await vsql`SELECT * FROM webhooks WHERE id = ${id} LIMIT 1`;
+    return (r.rows[0] as any) ?? null;
+  }
+  const d = await loadLocal();
+  return (d.webhooks ?? []).find((w: any) => w.id === id) ?? null;
+}
+
+export async function upsertWebhook(w: Webhook): Promise<Webhook> {
+  if (HAS_PG) {
+    await ensureSchema();
+    if (w.id) {
+      const r = await vsql`UPDATE webhooks
+        SET name=${w.name}, url=${w.url}, form_id=${w.form_id ?? null},
+            enabled=${w.enabled}, secret=${w.secret ?? null}, updated_at=NOW()
+        WHERE id=${w.id}
+        RETURNING *`;
+      return r.rows[0] as any;
+    }
+    const r = await vsql`INSERT INTO webhooks (name, url, form_id, enabled, secret)
+      VALUES (${w.name}, ${w.url}, ${w.form_id ?? null}, ${w.enabled}, ${w.secret ?? null})
+      RETURNING *`;
+    return r.rows[0] as any;
+  }
+  const d = await loadLocal();
+  d.webhooks = d.webhooks ?? [];
+  if (w.id) {
+    const i = d.webhooks.findIndex((x: any) => x.id === w.id);
+    if (i >= 0) {
+      d.webhooks[i] = { ...d.webhooks[i], ...w, updated_at: new Date().toISOString() };
+      await saveLocal(d);
+      return d.webhooks[i];
+    }
+  }
+  const created: Webhook = {
+    ...w,
+    id: Date.now(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+  d.webhooks.push(created);
+  await saveLocal(d);
+  return created;
+}
+
+export async function deleteWebhook(id: number) {
+  if (HAS_PG) {
+    await ensureSchema();
+    await vsql`DELETE FROM webhooks WHERE id = ${id}`;
+    return;
+  }
+  const d = await loadLocal();
+  d.webhooks = (d.webhooks ?? []).filter((x: any) => x.id !== id);
+  d.webhook_logs = (d.webhook_logs ?? []).filter((x: any) => x.webhook_id !== id);
+  await saveLocal(d);
+}
+
+// Webhooks that should fire for a given form_id — i.e. the ones that are
+// enabled AND either match the form_id explicitly or have no form_id (catch-all).
+export async function listWebhooksForForm(form_id: string | null): Promise<Webhook[]> {
+  if (HAS_PG) {
+    await ensureSchema();
+    const r = await vsql`SELECT * FROM webhooks
+      WHERE enabled = TRUE
+        AND (form_id IS NULL OR form_id = ${form_id ?? null})`;
+    return r.rows as any;
+  }
+  const d = await loadLocal();
+  return (d.webhooks ?? []).filter((w: any) => w.enabled && (!w.form_id || w.form_id === form_id));
+}
+
+// ---------- WEBHOOK LOGS ----------
+export type WebhookLog = {
+  id?: number;
+  webhook_id: number;
+  lead_id?: number | null;
+  request_body?: any;
+  response_status?: number | null;
+  response_body?: string | null;
+  error?: string | null;
+  success: boolean;
+  duration_ms?: number | null;
+  sent_at?: string;
+};
+
+export async function insertWebhookLog(log: WebhookLog) {
+  if (HAS_PG) {
+    await ensureSchema();
+    await vsql`INSERT INTO webhook_logs (
+      webhook_id, lead_id, request_body, response_status, response_body, error, success, duration_ms
+    ) VALUES (
+      ${log.webhook_id}, ${log.lead_id ?? null}, ${JSON.stringify(log.request_body ?? null)}::jsonb,
+      ${log.response_status ?? null}, ${log.response_body ?? null}, ${log.error ?? null},
+      ${log.success}, ${log.duration_ms ?? null}
+    )`;
+    return;
+  }
+  const d = await loadLocal();
+  d.webhook_logs = d.webhook_logs ?? [];
+  d.webhook_logs.unshift({
+    ...log,
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    sent_at: new Date().toISOString(),
+  });
+  // keep only the most recent 1000 logs in local mode to avoid file bloat
+  if (d.webhook_logs.length > 1000) d.webhook_logs.length = 1000;
+  await saveLocal(d);
+}
+
+export async function listWebhookLogs(webhook_id: number, limit = 200): Promise<WebhookLog[]> {
+  if (HAS_PG) {
+    await ensureSchema();
+    const r = await vsql`SELECT * FROM webhook_logs
+      WHERE webhook_id = ${webhook_id}
+      ORDER BY id DESC
+      LIMIT ${limit}`;
+    return r.rows as any;
+  }
+  const d = await loadLocal();
+  return (d.webhook_logs ?? [])
+    .filter((l: any) => l.webhook_id === webhook_id)
+    .slice(0, limit);
 }

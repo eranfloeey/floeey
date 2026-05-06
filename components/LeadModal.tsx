@@ -35,6 +35,9 @@ export default function LeadModal({
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
     const payload: Record<string, string> = {
+      // Identifies which form sent the lead. Used by /api/admin/webhooks to
+      // route per-form webhooks; new forms should pick their own form_id.
+      form_id: "main",
       name: String(fd.get("name") || ""),
       phone: String(fd.get("phone") || ""),
       variant_id: variantId,
