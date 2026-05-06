@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { insertLead } from "@/lib/db";
 import { fireWebhooks } from "@/lib/webhooks";
+import { notifyNlpearl } from "@/lib/nlpearl";
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,9 +35,14 @@ export async function POST(req: NextRequest) {
     };
     const leadId = await insertLead(lead);
 
-    // Fire matching webhooks. We await so the response only resolves once each
-    // webhook attempt has a log row, but downstream errors never bubble up —
-    // the user must always see a success state once the lead is stored.
+    // Hardcoded NLPearl outbound — fires on every lead regardless of admin
+    // webhook configuration. Errors are caught inside notifyNlpearl so a
+    // downstream NLPearl failure can never block the lead form.
+    await notifyNlpearl({ name: lead.name, phone: lead.phone });
+
+    // Fire matching admin-configured webhooks too. Same isolation: any failure
+    // is logged, never thrown — the user must always see a success state once
+    // the lead is stored.
     await fireWebhooks({
       form_id: formId,
       lead_id: leadId,
