@@ -548,12 +548,51 @@ section.block.alt { background: var(--bg-soft); }
   margin: 0 auto;
   line-height: 1.55;
 }
-.team-img {
-  display: block;
-  width: 100%;
+/* Circular avatar row built from individual character PNGs */
+.team-row {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 30px auto 0;
 }
+.team-avatar {
+  --tint: rgba(236, 76, 106, 0.18);
+  width: clamp(72px, 9vw, 120px);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 35%, var(--tint), rgba(255, 255, 255, 0.04) 70%),
+    #1c1c25;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.team-avatar:hover {
+  transform: translateY(-4px) scale(1.05);
+  border-color: rgba(236, 76, 106, 0.5);
+  z-index: 2;
+}
+.team-avatar img {
+  width: 130%;
+  height: 130%;
+  object-fit: cover;
+  object-position: center 35%;
+}
+/* Vary the tint per avatar so the row reads as a 'team' not clones */
+.team-avatar:nth-child(2)  { --tint: rgba(167, 139, 250, 0.20); }
+.team-avatar:nth-child(3)  { --tint: rgba(96, 165, 250, 0.20); }
+.team-avatar:nth-child(4)  { --tint: rgba(94, 234, 212, 0.20); }
+.team-avatar:nth-child(5)  { --tint: rgba(251, 191, 36, 0.20); }
+.team-avatar:nth-child(6)  { --tint: rgba(236, 76, 106, 0.20); }
+.team-avatar:nth-child(7)  { --tint: rgba(167, 139, 250, 0.20); }
+.team-avatar:nth-child(8)  { --tint: rgba(94, 234, 212, 0.20); }
+.team-avatar:nth-child(9)  { --tint: rgba(96, 165, 250, 0.20); }
+.team-avatar:nth-child(10) { --tint: rgba(251, 191, 36, 0.20); }
 .final-cta h2 {
   font-weight: 900;
   font-size: clamp(24px, 3.4vw, 38px);

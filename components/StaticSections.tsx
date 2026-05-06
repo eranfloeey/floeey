@@ -296,7 +296,13 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
               הסוכן מדבר בקול שאתם תבחרו, זכר או נקבה, והוא מכיר את העסק שלכם כאילו היה בעל הבית!
             </p>
           </div>
-          <img className="team-img" src="/img/team.png" alt="צוות הסוכנים של פלואי" />
+          <ul className="team-row" aria-label="צוות סוכני פלואי">
+            {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((n, i) => (
+              <li key={n} className="team-avatar">
+                <img src={`/img/team/${n}.png`} alt="" aria-hidden="true" />
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
