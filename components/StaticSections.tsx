@@ -66,29 +66,62 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
   const armRef = useRef<HTMLImageElement>(null);
   const teamRowRef = useRef<HTMLUListElement>(null);
 
-  // Continuous-loop sizing of marquee avatars: center-of-viewport = largest, edges = smallest.
+  // Scroll-driven infinite avatar marquee:
+  //  - Page scroll-down moves the row right-to-left; scroll-up reverses
+  //  - Modulo wrap on the doubled list = truly infinite in both directions
+  //  - Each avatar's --s scales by distance from viewport horizontal center (center biggest)
   useEffect(() => {
     const row = teamRowRef.current;
     if (!row) return;
-    let raf: number;
-    const tick = () => {
+
+    let offset = 0;
+    let lastScrollY = window.scrollY;
+    const SCROLL_SPEED = 0.6;     // px of horizontal travel per px of vertical scroll
+    let raf = 0;
+    let pending = false;
+
+    const apply = () => {
+      pending = false;
+      const half = row.scrollWidth / 2;     // half because the list is doubled
+      if (half > 0) {
+        offset = ((offset % half) + half) % half;
+        row.style.transform = `translate3d(${-offset}px, 0, 0)`;
+      }
+      // Update per-avatar scale based on screen position
       const vw = window.innerWidth;
       const cx = vw / 2;
-      const half = vw / 2;
       const items = row.querySelectorAll<HTMLElement>(".team-avatar");
       items.forEach((el) => {
         const rect = el.getBoundingClientRect();
         const elCx = rect.left + rect.width / 2;
-        const dist = Math.min(1, Math.abs(elCx - cx) / half);
-        // smooth fall-off (cosine) — 1.0 in the middle, ~0.45 at edges
+        const dist = Math.min(1, Math.abs(elCx - cx) / (vw / 2));
         const eased = 1 - Math.cos((dist * Math.PI) / 2);
-        const scale = 1 - eased * 0.55;
+        const scale = 1.5 - eased * 1.15;   // ~1.5 center, ~0.35 edges
         el.style.setProperty("--s", scale.toFixed(3));
       });
-      raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+
+    const schedule = () => {
+      if (pending) return;
+      pending = true;
+      raf = requestAnimationFrame(apply);
+    };
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      offset += (y - lastScrollY) * SCROLL_SPEED;
+      lastScrollY = y;
+      schedule();
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", schedule);
+    schedule();   // initial paint
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", schedule);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   useEffect(() => {
