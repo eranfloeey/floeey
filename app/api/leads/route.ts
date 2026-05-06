@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { insertLead } from "@/lib/db";
+import { insertLead, updateLeadExtra } from "@/lib/db";
 import { fireWebhooks } from "@/lib/webhooks";
 import { notifyNlpearl } from "@/lib/nlpearl";
+import { normalizeIsraeliPhone } from "@/lib/phone";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,12 +15,24 @@ export async function POST(req: NextRequest) {
     if (!body.name || !body.phone) {
       return NextResponse.json({ ok: false, error: "missing name/phone" }, { status: 400 });
     }
+    // Phones are normalised to E.164 (+972…) at the boundary so everything
+    // downstream — DB, NLPearl, webhooks, admin views — sees the same canonical
+    // form. Anything that doesn't look like a valid Israeli mobile or landline
+    // gets rejected with 400.
+    const phoneE164 = normalizeIsraeliPhone(body.phone);
+    if (!phoneE164) {
+      return NextResponse.json(
+        { ok: false, error: "invalid_phone", message: "מספר טלפון ישראלי לא תקין" },
+        { status: 400 }
+      );
+    }
+
     // form_id is plumbed through so future forms (besides the main lead modal)
     // can target their own webhooks. Defaults to "main" for backwards compat.
     const formId: string = String(body.form_id || "main");
     const lead = {
       name: String(body.name).trim(),
-      phone: String(body.phone).trim(),
+      phone: phoneE164,
       variant_id: body.variant_id ?? null,
       referrer: body.referrer ?? null,
       landing_url: body.landing_url ?? null,
@@ -33,25 +46,41 @@ export async function POST(req: NextRequest) {
       user_agent: ua,
       ip,
     };
-    const leadId = await insertLead(lead);
 
-    // Hardcoded NLPearl outbound — fires on every lead regardless of admin
-    // webhook configuration. Errors are caught inside notifyNlpearl so a
-    // downstream NLPearl failure can never block the lead form.
-    await notifyNlpearl({ name: lead.name, phone: lead.phone });
+    // Save the lead FIRST, before any external calls. If the database insert
+    // fails the request fails loudly (500) so the user sees a real error
+    // instead of an opaque "done" state.
+    let leadId: number | null;
+    try {
+      leadId = await insertLead(lead);
+    } catch (e: any) {
+      console.error("insertLead failed", e);
+      return NextResponse.json(
+        { ok: false, error: "db_insert_failed", message: e?.message || "save failed" },
+        { status: 500 }
+      );
+    }
 
-    // Fire matching admin-configured webhooks too. Same isolation: any failure
-    // is logged, never thrown — the user must always see a success state once
-    // the lead is stored.
-    await fireWebhooks({
+    // Fire NLPearl outbound. The full request + response is captured and
+    // stitched onto the lead row's `extra` field so the admin can audit
+    // exactly what was sent and what came back per lead.
+    const nlpearl = await notifyNlpearl({ name: lead.name, phone: lead.phone });
+    try {
+      if (leadId != null) await updateLeadExtra(leadId, { nlpearl });
+    } catch (e) {
+      console.error("updateLeadExtra failed", e);
+    }
+
+    // Fire admin-configured webhooks too. Failures are logged, never thrown.
+    fireWebhooks({
       form_id: formId,
       lead_id: leadId,
       payload: { ...lead, id: leadId, form_id: formId },
     }).catch((e) => console.error("webhook fire error", e));
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, lead_id: leadId });
   } catch (e: any) {
-    console.error("lead error", e);
-    return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 500 });
+    console.error("lead route error", e);
+    return NextResponse.json({ ok: false, error: "server_error", message: e?.message || "error" }, { status: 500 });
   }
 }

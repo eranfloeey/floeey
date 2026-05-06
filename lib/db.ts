@@ -156,6 +156,26 @@ export async function listLeads(limit = 200): Promise<Lead[]> {
   return d.leads.slice(0, limit);
 }
 
+// Merge a partial object into the lead's `extra` JSONB column. Used to attach
+// downstream-call records (like the NLPearl request/response) onto an existing
+// lead without rewriting all of its fields.
+export async function updateLeadExtra(id: number, patch: Record<string, any>) {
+  if (HAS_PG) {
+    await ensureSchema();
+    // Postgres jsonb || jsonb merges objects shallow — exactly what we want.
+    await vsql`UPDATE leads
+      SET extra = COALESCE(extra, '{}'::jsonb) || ${JSON.stringify(patch)}::jsonb
+      WHERE id = ${id}`;
+    return;
+  }
+  const d = await loadLocal();
+  const i = d.leads.findIndex((x: any) => x.id === id);
+  if (i >= 0) {
+    d.leads[i].extra = { ...(d.leads[i].extra || {}), ...patch };
+    await saveLocal(d);
+  }
+}
+
 // ---------- VARIANTS ----------
 export type VariantOverrides = {
   eyebrow?: string;

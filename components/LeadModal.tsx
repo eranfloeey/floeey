@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { isValidIsraeliPhone } from "@/lib/phone";
 
 export default function LeadModal({
   open,
@@ -14,6 +15,7 @@ export default function LeadModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -32,14 +34,25 @@ export default function LeadModal({
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (submitting) return;
-    setSubmitting(true);
+    setError(null);
     const fd = new FormData(e.currentTarget);
+    const name = String(fd.get("name") || "").trim();
+    const phone = String(fd.get("phone") || "").trim();
+
+    // Client-side validation: only valid Israeli phones (mobile or landline)
+    // make it as far as the API. Saves a roundtrip and gives instant feedback.
+    if (!isValidIsraeliPhone(phone)) {
+      setError("מספר טלפון ישראלי לא תקין. למשל: 054-123-4567");
+      return;
+    }
+
+    setSubmitting(true);
     const payload: Record<string, string> = {
       // Identifies which form sent the lead. Used by /api/admin/webhooks to
       // route per-form webhooks; new forms should pick their own form_id.
       form_id: "main",
-      name: String(fd.get("name") || ""),
-      phone: String(fd.get("phone") || ""),
+      name,
+      phone,
       variant_id: variantId,
       landing_url: typeof window !== "undefined" ? window.location.href : "",
       referrer: typeof document !== "undefined" ? document.referrer : "",
@@ -58,17 +71,29 @@ export default function LeadModal({
       if (v) payload[k] = v;
     });
     try {
-      await fetch("/api/leads", {
+      const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        // 400 → user-fixable (invalid phone, etc). 500 → server problem.
+        const msg =
+          data?.message ||
+          (res.status >= 500
+            ? "משהו השתבש אצלנו, נסה שוב בעוד רגע"
+            : "לא הצלחנו לשמור — בדוק שהפרטים תקינים");
+        setError(msg);
+        setSubmitting(false);
+        return;
+      }
       setDone(true);
-      setTimeout(onClose, 1800);
+      // Redirect to the dedicated thanks page so the user sees the confirmation
+      // copy + Menachem image.
+      window.location.href = "/thanks";
     } catch {
-      setDone(true);
-      setTimeout(onClose, 1800);
-    } finally {
+      setError("בעיית חיבור — נסה שוב בעוד רגע");
       setSubmitting(false);
     }
   }
@@ -146,13 +171,27 @@ export default function LeadModal({
               />
             </div>
 
+            {error ? (
+              <p className="lead-error" role="alert" style={{
+                color: "#fca5a5",
+                background: "rgba(248,113,113,0.10)",
+                border: "1px solid rgba(248,113,113,0.25)",
+                borderRadius: 8,
+                padding: "8px 12px",
+                fontSize: 13,
+                marginBottom: 10,
+              }}>
+                {error}
+              </p>
+            ) : null}
+
             <button type="submit" className="submit-btn" disabled={submitting || done}>
               <span className="btn-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                   <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z" />
                 </svg>
               </span>
-              {done ? "תודה! חוזרים אליך תוך דקות" : "צלצל כבר מנחם!"}
+              {done ? "מעבירים אותך…" : submitting ? "שולח…" : "צלצל כבר מנחם!"}
             </button>
             <p className="trust">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">

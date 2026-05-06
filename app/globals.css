@@ -1208,3 +1208,76 @@ footer {
   .hero h1 { font-size: clamp(36px, 4.6vw, 60px); }
   .menachem { max-width: 560px; }
 }
+
+/* === Thanks page (/thanks) — post-submit confirmation ============== */
+.thanks-page {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px;
+  background:
+    radial-gradient(900px 600px at 50% 30%, rgba(236, 76, 106, 0.20), transparent 65%),
+    linear-gradient(180deg, #0d0d12 0%, #16161d 100%);
+  gap: 28px;
+}
+.thanks-art {
+  position: relative;
+  width: clamp(220px, 38vw, 460px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.thanks-art::before {
+  content: "";
+  position: absolute;
+  inset: 8% 8%;
+  background: radial-gradient(closest-side, rgba(236, 76, 106, 0.45), transparent 70%);
+  filter: blur(40px);
+  z-index: 0;
+  animation: thanks-pulse 5.7s ease-in-out infinite;
+}
+.thanks-art img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  filter: drop-shadow(0 28px 36px rgba(0, 0, 0, 0.55))
+          drop-shadow(0 0 60px rgba(236, 76, 106, 0.4));
+  animation: thanks-float 6s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes thanks-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-2deg); }
+  25%      { transform: translate3d(4px, -8px, 0) rotate(-1deg); }
+  50%      { transform: translate3d(-2px, -14px, 0) rotate(-3deg); }
+  75%      { transform: translate3d(-5px, -6px, 0) rotate(-1.5deg); }
+}
+@keyframes thanks-pulse {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.08); }
+}
+.thanks-title {
+  font-weight: 900;
+  font-size: clamp(30px, 5vw, 56px);
+  line-height: 1.15;
+  margin: 0;
+  max-width: 720px;
+  letter-spacing: -0.5px;
+}
+.thanks-back {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 2px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.thanks-back:hover { color: #fff; border-color: rgba(255, 255, 255, 0.4); }
+@media (prefers-reduced-motion: reduce) {
+  .thanks-art img,
+  .thanks-art::before { animation: none; }
+}

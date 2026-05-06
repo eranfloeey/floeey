@@ -16,22 +16,28 @@ const NLPEARL_AUTH =
 
 const TIMEOUT_MS = 8000;
 
-// Israeli phone normalization to E.164. Accepts any common entry format.
-function toE164Israel(raw: string | null | undefined): string {
-  if (!raw) return "";
-  const digits = String(raw).replace(/\D+/g, "");
-  if (!digits) return "";
-  if (digits.startsWith("972")) return "+" + digits;
-  if (digits.startsWith("0")) return "+972" + digits.slice(1);
-  return "+972" + digits;
-}
+export type NlpearlResult = {
+  url: string;
+  request: { phoneNumber: string; callData: { customerName: string } };
+  status: number | null;
+  response_body: string | null;
+  error: string | null;
+  duration_ms: number;
+  success: boolean;
+  sent_at: string;
+};
 
-export async function notifyNlpearl(lead: { name: string; phone: string }): Promise<void> {
-  const body = {
-    phoneNumber: toE164Israel(lead.phone),
+// Phone is expected to already be in E.164 form (validated upstream by lib/phone).
+// We still pass it through unchanged so even legacy raw input gets sent to
+// NLPearl rather than dropped.
+export async function notifyNlpearl(lead: { name: string; phone: string }): Promise<NlpearlResult> {
+  const sentAt = new Date().toISOString();
+  const requestBody = {
+    phoneNumber: lead.phone,
     callData: { customerName: lead.name || "" },
   };
 
+  const started = Date.now();
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
@@ -41,16 +47,39 @@ export async function notifyNlpearl(lead: { name: string; phone: string }): Prom
         Authorization: NLPEARL_AUTH,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
     clearTimeout(t);
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      console.error("NLPearl call failed", res.status, txt);
-    }
+    let txt = "";
+    try {
+      const t2 = await res.text();
+      txt = t2.length > 8000 ? t2.slice(0, 8000) + "\n…[truncated]" : t2;
+    } catch {}
+    if (!res.ok) console.error("NLPearl call failed", res.status, txt);
+    return {
+      url: NLPEARL_URL,
+      request: requestBody,
+      status: res.status,
+      response_body: txt,
+      error: null,
+      duration_ms: Date.now() - started,
+      success: res.ok,
+      sent_at: sentAt,
+    };
   } catch (err: any) {
     clearTimeout(t);
-    console.error("NLPearl error", err?.name === "AbortError" ? "timeout" : err?.message || err);
+    const msg = err?.name === "AbortError" ? "timeout" : err?.message || String(err);
+    console.error("NLPearl error", msg);
+    return {
+      url: NLPEARL_URL,
+      request: requestBody,
+      status: null,
+      response_body: null,
+      error: msg,
+      duration_ms: Date.now() - started,
+      success: false,
+      sent_at: sentAt,
+    };
   }
 }
