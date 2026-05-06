@@ -141,49 +141,71 @@ export default function StaticSections({ onOpenModal }: { onOpenModal: () => voi
               <span className="m">מנחם</span>, לא רק עונה. הוא <span className="m">מבצע</span>.
             </h2>
             <p>
-              מחובר לכל המערכות בעסק - שולח קישורי תשלום, קובע פגישות, פותח לידים ב-CRM, ועושה את העבודה במקומך.
+              שיחה אחת מפעילה זרימה שלמה של פעולות אוטומטיות במערכות שלכם.
             </p>
           </div>
 
-          <div className="hub">
-            <div className="action a1">
-              <div className="action-icon">💳</div>
-              <div className="action-label">קישור לתשלום</div>
-            </div>
-            <div className="action a2">
-              <div className="action-icon">💬</div>
-              <div className="action-label">שליחת WhatsApp</div>
-            </div>
-            <div className="action a3">
-              <div className="action-icon">📅</div>
-              <div className="action-label">קביעת פגישה</div>
-            </div>
-            <div className="action a4">
-              <div className="action-icon">📊</div>
-              <div className="action-label">פתיחת ליד ב-CRM</div>
+          <div className="flow">
+            {/* TRIGGER */}
+            <div className="flow-row flow-row-trigger">
+              <aside className="flow-note">
+                <strong>טריגר</strong>
+                <span>מה מפעיל את הזרימה</span>
+              </aside>
+              <div className="flow-card flow-card-trigger">
+                <span className="fc-badge fc-badge-trigger">⚡</span>
+                <span className="fc-icon">📞</span>
+                <span className="fc-label">כשנכנסת שיחה</span>
+              </div>
             </div>
 
-            <div className="hub-center">
-              <div className="hub-glow" aria-hidden="true"></div>
-              <img src="/img/menachem.png" alt="" aria-hidden="true" />
-              <div className="hub-caption">📞 שיחה נכנסת</div>
+            <div className="flow-line" aria-hidden="true"></div>
+
+            {/* AI AGENT */}
+            <div className="flow-row flow-row-agent">
+              <aside className="flow-note">
+                <strong>סוכן AI</strong>
+                <span>מנתח את השיחה ומחליט מה לעשות</span>
+              </aside>
+              <div className="flow-card flow-card-ai">
+                <span className="fc-badge fc-badge-ai">✨</span>
+                <img className="fc-avatar" src="/img/menachem-linkedin.png" alt="" aria-hidden="true" />
+                <span className="fc-label">
+                  <strong>מנחם</strong>
+                  <em>סוכן הקול שלכם</em>
+                </span>
+              </div>
             </div>
 
-            <div className="action a5">
-              <div className="action-icon">🧾</div>
-              <div className="action-label">הפקת חשבונית</div>
+            <div className="flow-fanout" aria-hidden="true">
+              <svg viewBox="0 0 800 80" preserveAspectRatio="none">
+                <path d="M400,0 L400,30 Q400,40 390,40 L60,40 Q50,40 50,50 L50,80" />
+                <path d="M400,0 L400,30 Q400,40 390,40 L160,40 Q150,40 150,50 L150,80" />
+                <path d="M400,0 L400,30 Q400,40 390,40 L260,40 Q250,40 250,50 L250,80" />
+                <path d="M400,0 L400,30 Q400,40 390,40 L360,40 Q350,40 350,50 L350,80" />
+                <path d="M400,0 L400,30 Q400,40 410,40 L450,40 Q460,40 460,50 L460,80" />
+                <path d="M400,0 L400,30 Q400,40 410,40 L550,40 Q560,40 560,50 L560,80" />
+                <path d="M400,0 L400,30 Q400,40 410,40 L650,40 Q660,40 660,50 L660,80" />
+                <path d="M400,0 L400,30 Q400,40 410,40 L750,40 Q760,40 760,50 L760,80" />
+              </svg>
             </div>
-            <div className="action a6">
-              <div className="action-icon">📦</div>
-              <div className="action-label">בדיקת משלוח</div>
-            </div>
-            <div className="action a7">
-              <div className="action-icon">📑</div>
-              <div className="action-label">חוזה לחתימה</div>
-            </div>
-            <div className="action a8">
-              <div className="action-icon">📞</div>
-              <div className="action-label">העברת שיחה</div>
+
+            {/* ACTIONS */}
+            <div className="flow-row flow-row-actions">
+              <aside className="flow-note">
+                <strong>פעולות ואינטגרציות</strong>
+                <span>מנחם מבצע את הפעולה במערכת המתאימה</span>
+              </aside>
+              <div className="flow-actions-grid">
+                <div className="flow-card flow-card-action"><span className="fc-icon">💳</span><span className="fc-label">קישור לתשלום</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">💬</span><span className="fc-label">שליחת WhatsApp</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📅</span><span className="fc-label">קביעת פגישה</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📊</span><span className="fc-label">פתיחת ליד ב-CRM</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">🧾</span><span className="fc-label">הפקת חשבונית</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📦</span><span className="fc-label">בדיקת משלוח</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📑</span><span className="fc-label">חוזה לחתימה</span></div>
+                <div className="flow-card flow-card-action"><span className="fc-icon">📞</span><span className="fc-label">העברת שיחה</span></div>
+              </div>
             </div>
           </div>
         </div>
