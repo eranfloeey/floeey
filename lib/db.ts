@@ -8,7 +8,20 @@ export const HAS_PG = Boolean(
   process.env.POSTGRES_URL || process.env.DATABASE_URL
 );
 
-const LOCAL_PATH = path.join(process.cwd(), "data", "local.json");
+// Local JSON fallback location. On Vercel /var/task is read-only, but /tmp is
+// writable (per-instance, ephemeral). Locally we still use the repo's data/
+// folder so devs get persistent data across reloads. If you're on Vercel
+// without POSTGRES_URL, leads end up in /tmp and disappear on cold start —
+// add Vercel Postgres in the dashboard to persist them properly.
+const LOCAL_DIR =
+  process.env.VERCEL === "1" ? "/tmp" : path.join(process.cwd(), "data");
+const LOCAL_PATH = path.join(LOCAL_DIR, "local.json");
+
+if (!HAS_PG && process.env.VERCEL === "1") {
+  console.warn(
+    "[floeey] No POSTGRES_URL set — falling back to /tmp/local.json. Data WILL be lost on cold starts. Configure Vercel Postgres to persist leads."
+  );
+}
 
 type LocalShape = {
   leads: any[];
