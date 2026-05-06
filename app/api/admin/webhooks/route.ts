@@ -20,6 +20,26 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ ok: false, error: "invalid url" }, { status: 400 });
   }
+  // Headers can arrive either as an object (preferred) or as a JSON string
+  // (when posted from a textarea); normalise to a string-keyed map.
+  let headers: Record<string, string> = {};
+  if (body.headers && typeof body.headers === "object") {
+    for (const [k, v] of Object.entries(body.headers)) {
+      if (typeof v === "string" && k.trim() && v.trim()) headers[k.trim()] = v.trim();
+    }
+  } else if (typeof body.headers === "string" && body.headers.trim()) {
+    try {
+      const parsed = JSON.parse(body.headers);
+      if (parsed && typeof parsed === "object") {
+        for (const [k, v] of Object.entries(parsed)) {
+          if (typeof v === "string" && k.trim() && v.trim()) headers[k.trim()] = v.trim();
+        }
+      }
+    } catch {
+      return NextResponse.json({ ok: false, error: "headers must be valid JSON" }, { status: 400 });
+    }
+  }
+
   const saved = await upsertWebhook({
     id: body.id ? Number(body.id) : undefined,
     name: String(body.name).trim(),
@@ -27,6 +47,10 @@ export async function POST(req: NextRequest) {
     form_id: body.form_id ? String(body.form_id).trim() : null,
     enabled: body.enabled !== false,
     secret: body.secret ? String(body.secret).trim() : null,
+    headers,
+    body_template: typeof body.body_template === "string" && body.body_template.trim()
+      ? body.body_template
+      : null,
   });
   return NextResponse.json({ ok: true, webhook: saved });
 }

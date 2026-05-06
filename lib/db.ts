@@ -73,15 +73,20 @@ export async function ensureSchema() {
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`;
   await vsql`CREATE TABLE IF NOT EXISTS webhooks (
-    id          SERIAL PRIMARY KEY,
-    name        TEXT NOT NULL,
-    url         TEXT NOT NULL,
-    form_id     TEXT,                       -- NULL = fires for every form
-    enabled     BOOLEAN NOT NULL DEFAULT TRUE,
-    secret      TEXT,                       -- optional, sent as x-floeey-secret
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    id            SERIAL PRIMARY KEY,
+    name          TEXT NOT NULL,
+    url           TEXT NOT NULL,
+    form_id       TEXT,                       -- NULL = fires for every form
+    enabled       BOOLEAN NOT NULL DEFAULT TRUE,
+    secret        TEXT,                       -- optional, sent as x-floeey-secret
+    headers       JSONB NOT NULL DEFAULT '{}'::jsonb,
+    body_template TEXT,                       -- NULL = default Floeey envelope
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`;
+  // Migrations for instances created before headers + body_template existed.
+  await vsql`ALTER TABLE webhooks ADD COLUMN IF NOT EXISTS headers JSONB NOT NULL DEFAULT '{}'::jsonb`;
+  await vsql`ALTER TABLE webhooks ADD COLUMN IF NOT EXISTS body_template TEXT`;
   await vsql`CREATE TABLE IF NOT EXISTS webhook_logs (
     id              SERIAL PRIMARY KEY,
     webhook_id      INT NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
@@ -284,9 +289,11 @@ export type Webhook = {
   id?: number;
   name: string;
   url: string;
-  form_id?: string | null;     // NULL = matches every form
+  form_id?: string | null;          // NULL = matches every form
   enabled: boolean;
-  secret?: string | null;       // optional, sent as x-floeey-secret header
+  secret?: string | null;            // optional, sent as x-floeey-secret header
+  headers?: Record<string, string>;  // arbitrary headers merged on top of defaults
+  body_template?: string | null;     // raw body template w/ {{placeholders}}; null = default Floeey envelope
   created_at?: string;
   updated_at?: string;
 };
@@ -312,18 +319,22 @@ export async function getWebhook(id: number): Promise<Webhook | null> {
 }
 
 export async function upsertWebhook(w: Webhook): Promise<Webhook> {
+  const headersJson = JSON.stringify(w.headers ?? {});
   if (HAS_PG) {
     await ensureSchema();
     if (w.id) {
       const r = await vsql`UPDATE webhooks
         SET name=${w.name}, url=${w.url}, form_id=${w.form_id ?? null},
-            enabled=${w.enabled}, secret=${w.secret ?? null}, updated_at=NOW()
+            enabled=${w.enabled}, secret=${w.secret ?? null},
+            headers=${headersJson}::jsonb, body_template=${w.body_template ?? null},
+            updated_at=NOW()
         WHERE id=${w.id}
         RETURNING *`;
       return r.rows[0] as any;
     }
-    const r = await vsql`INSERT INTO webhooks (name, url, form_id, enabled, secret)
-      VALUES (${w.name}, ${w.url}, ${w.form_id ?? null}, ${w.enabled}, ${w.secret ?? null})
+    const r = await vsql`INSERT INTO webhooks (name, url, form_id, enabled, secret, headers, body_template)
+      VALUES (${w.name}, ${w.url}, ${w.form_id ?? null}, ${w.enabled}, ${w.secret ?? null},
+              ${headersJson}::jsonb, ${w.body_template ?? null})
       RETURNING *`;
     return r.rows[0] as any;
   }
@@ -332,13 +343,14 @@ export async function upsertWebhook(w: Webhook): Promise<Webhook> {
   if (w.id) {
     const i = d.webhooks.findIndex((x: any) => x.id === w.id);
     if (i >= 0) {
-      d.webhooks[i] = { ...d.webhooks[i], ...w, updated_at: new Date().toISOString() };
+      d.webhooks[i] = { ...d.webhooks[i], ...w, headers: w.headers ?? {}, updated_at: new Date().toISOString() };
       await saveLocal(d);
       return d.webhooks[i];
     }
   }
   const created: Webhook = {
     ...w,
+    headers: w.headers ?? {},
     id: Date.now(),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

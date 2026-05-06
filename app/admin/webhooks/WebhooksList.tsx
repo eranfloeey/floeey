@@ -10,6 +10,8 @@ const EMPTY: Webhook = {
   form_id: "",
   enabled: true,
   secret: "",
+  headers: {},
+  body_template: "",
 };
 
 export default function WebhooksList({ initial }: { initial: Webhook[] }) {
@@ -166,6 +168,16 @@ export default function WebhooksList({ initial }: { initial: Webhook[] }) {
   );
 }
 
+// Stringify headers as JSON for the textarea, swallowing the case where the
+// value comes back as a string from the API (older rows) or as null.
+function headersToText(h: Webhook["headers"]) {
+  if (!h) return "";
+  if (typeof h === "string") return h;
+  const keys = Object.keys(h);
+  if (!keys.length) return "";
+  return JSON.stringify(h, null, 2);
+}
+
 export function Editor({
   value,
   onChange,
@@ -179,6 +191,32 @@ export function Editor({
   onCancel?: () => void;
   busy: boolean;
 }) {
+  // Headers + body template are local string state — we only roll them back
+  // into the parent webhook on save, so the user can type freely without
+  // every keystroke triggering a JSON.parse error in the parent.
+  const [headersText, setHeadersText] = useState(headersToText(value.headers));
+  const [headersErr, setHeadersErr] = useState<string | null>(null);
+
+  function commitHeaders(text: string) {
+    setHeadersText(text);
+    if (!text.trim()) {
+      setHeadersErr(null);
+      onChange({ ...value, headers: {} });
+      return;
+    }
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        setHeadersErr(null);
+        onChange({ ...value, headers: parsed });
+      } else {
+        setHeadersErr("צריך להיות object של key/value");
+      }
+    } catch {
+      setHeadersErr("JSON לא תקין");
+    }
+  }
+
   return (
     <div>
       <label className="field">
@@ -187,7 +225,7 @@ export function Editor({
           type="text"
           value={value.name}
           onChange={(e) => onChange({ ...value, name: e.target.value })}
-          placeholder="למשל: CRM של Make / Zapier"
+          placeholder="למשל: NLPearl / Make / Zapier"
         />
       </label>
       <label className="field">
@@ -197,7 +235,7 @@ export function Editor({
           dir="ltr"
           value={value.url}
           onChange={(e) => onChange({ ...value, url: e.target.value })}
-          placeholder="https://hooks.example.com/abc123"
+          placeholder="https://api.example.com/webhook"
         />
       </label>
       <div className="row" style={{ gap: 12, alignItems: "stretch" }}>
@@ -221,6 +259,36 @@ export function Editor({
           />
         </label>
       </div>
+
+      <label className="field">
+        <span>
+          Custom Headers (JSON) — לדוגמה Authorization, X-Api-Key. דוחק על
+          content-type/user-agent ברירת המחדל.
+        </span>
+        <textarea
+          dir="ltr"
+          value={headersText}
+          onChange={(e) => commitHeaders(e.target.value)}
+          placeholder={`{\n  "Authorization": "Bearer abc123:xyz"\n}`}
+          style={{ minHeight: 100 }}
+        />
+        {headersErr ? <div className="alert error" style={{ marginTop: 6 }}>{headersErr}</div> : null}
+      </label>
+
+      <label className="field">
+        <span>
+          Body Template (אופציונלי — ריק = שולח את ה-envelope של Floeey).
+          Placeholders: {"{{name}}, {{phone}}, {{phone_e164}}, {{form_id}}, {{lead_id}}, {{utm_source}}, …"}
+        </span>
+        <textarea
+          dir="ltr"
+          value={value.body_template ?? ""}
+          onChange={(e) => onChange({ ...value, body_template: e.target.value })}
+          placeholder={`{\n  "phoneNumber": "{{phone_e164}}",\n  "callData": {\n    "customerName": "{{name}}"\n  }\n}`}
+          style={{ minHeight: 140 }}
+        />
+      </label>
+
       <label className="field" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <input
           type="checkbox"
@@ -231,7 +299,7 @@ export function Editor({
         <span style={{ margin: 0 }}>פעיל</span>
       </label>
       <div className="row" style={{ gap: 8 }}>
-        <button className="primary" onClick={onSave} disabled={busy || !value.name || !value.url}>
+        <button className="primary" onClick={onSave} disabled={busy || !value.name || !value.url || !!headersErr}>
           {busy ? "שומר..." : "שמור"}
         </button>
         {onCancel ? (
