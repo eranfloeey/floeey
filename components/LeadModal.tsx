@@ -210,7 +210,7 @@ export default function LeadModal({
                     onChange={(e) => setConsent(e.target.checked)}
                     aria-label="אישור הצהרה"
                   />
-                  <span>
+                  <span className="consent-text">
                     אני מאשר/ת כי ידוע לי ומוסכם עלי כי הפרטים שמסרתי ייאספו, יוחזקו ויעובדו במאגר מידע בהתאם להוראות חוק הגנת הפרטיות,
                     התשמ&quot;א–1981 (כולל תיקון 13), ולמטרות המפורטות{" "}
                     <a href="/terms?tab=privacy" target="_blank" rel="noopener noreferrer">
