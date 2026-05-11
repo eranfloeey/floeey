@@ -18,10 +18,14 @@ export const metadata: Metadata = {
 // Lets users paste arbitrary HTML (script/noscript/iframe) into the admin pixel boxes.
 function PixelInjector({ head, body }: { head: string; body: string }) {
   if (!head && !body) return null;
+  // Escape `</` inside the JSON-encoded pixel HTML so an injected
+  // `</script>` doesn't close this script tag and leak its source as text.
+  const safe = (s: string) =>
+    JSON.stringify(s || "").replace(/<\/(script|style)/gi, "<\\/$1");
   const code = `
     (function () {
-      var h = ${JSON.stringify(head || "")};
-      var b = ${JSON.stringify(body || "")};
+      var h = ${safe(head || "")};
+      var b = ${safe(body || "")};
       if (h) document.head.insertAdjacentHTML("beforeend", h);
       if (b) document.body.insertAdjacentHTML("afterbegin", b);
       // Activate any inserted <script> tags (innerHTML doesn't execute them)
