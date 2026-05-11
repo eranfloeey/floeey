@@ -1100,7 +1100,7 @@ footer {
   pointer-events: none;
   transition: color 0.15s ease;
 }
-.modal-body input {
+.modal-body input:not([type="checkbox"]) {
   width: 100%; background: var(--bg);
   border: 1px solid var(--border); border-radius: 12px;
   color: var(--text);
@@ -1190,7 +1190,7 @@ footer {
   .modal-body .title .line { font-size: 18px; }
   .modal-body .eyebrow { font-size: 15px; }
   .modal-body .small { font-size: 13px; margin-bottom: 12px; }
-  .modal-body input { padding: 12px 16px; padding-inline-start: 38px; font-size: 15px; }
+  .modal-body input:not([type="checkbox"]) { padding: 12px 16px; padding-inline-start: 38px; font-size: 15px; }
   .modal-body .submit-btn { padding: 12px 14px; font-size: 16px; }
   .modal-body .submit-btn .btn-icon { width: 30px; height: 30px; }
 }
@@ -1398,7 +1398,10 @@ footer {
 .consent-label input[type="checkbox"] {
   appearance: none; -webkit-appearance: none;
   width: 18px; height: 18px;
+  min-width: 18px; max-width: 18px;
+  min-height: 18px; max-height: 18px;
   flex: 0 0 18px;
+  padding: 0 !important;
   margin: 1px 0 0;
   border: 2px solid #fff;
   border-radius: 4px;
@@ -1407,6 +1410,9 @@ footer {
   position: relative;
   transition: background 0.15s ease, border-color 0.15s ease;
   display: inline-block;
+  box-sizing: border-box;
+  font-size: 0;
+  line-height: 0;
 }
 .consent-label input[type="checkbox"]:hover {
   background: rgba(255, 255, 255, 0.18);
