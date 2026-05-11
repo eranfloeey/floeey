@@ -16,7 +16,14 @@ type Lead = {
   referrer?: string | null;
   ip?: string | null;
   extra?: any;
+  consent?: boolean;
+  consent_at?: string | null;
+  landing_url?: string | null;
+  utm_term?: string | null;
+  utm_content?: string | null;
 };
+
+type Filter = "all" | "consented" | "abandoned";
 
 // Renders the leads table. Each row is clickable and expands a detail panel
 // showing the NLPearl call we made when the lead was submitted: the exact
@@ -24,8 +31,32 @@ type Lead = {
 // audit log the user asked for — per lead, what hit the API and what came back.
 export default function LeadsTable({ leads }: { leads: Lead[] }) {
   const [openId, setOpenId] = useState<number | null>(null);
+  const [filter, setFilter] = useState<Filter>("all");
+
+  const counts = {
+    all: leads.length,
+    consented: leads.filter((l) => l.consent).length,
+    abandoned: leads.filter((l) => !l.consent).length,
+  };
+  const filtered = leads.filter((l) => {
+    if (filter === "consented") return !!l.consent;
+    if (filter === "abandoned") return !l.consent;
+    return true;
+  });
 
   return (
+    <>
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        <FilterBtn active={filter === "all"} onClick={() => setFilter("all")}>
+          הכל ({counts.all})
+        </FilterBtn>
+        <FilterBtn active={filter === "consented"} onClick={() => setFilter("consented")}>
+          אישרו הצהרה ({counts.consented})
+        </FilterBtn>
+        <FilterBtn active={filter === "abandoned"} onClick={() => setFilter("abandoned")}>
+          נטשו בשלב 2 ({counts.abandoned})
+        </FilterBtn>
+      </div>
     <div className="card" style={{ padding: 0, overflow: "auto" }}>
       <table>
         <thead>
@@ -33,34 +64,39 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
             <th>תאריך</th>
             <th>שם</th>
             <th>טלפון</th>
+            <th>הצהרה</th>
             <th>NLPearl</th>
             <th>וריאנט</th>
-            <th>UTM</th>
-            <th>Referrer</th>
+            <th>מקור (קמפיין / מודעה)</th>
           </tr>
         </thead>
         <tbody>
-          {leads.length === 0 ? (
+          {filtered.length === 0 ? (
             <tr>
               <td colSpan={7} style={{ textAlign: "center", padding: 40, color: "#8b8b98" }}>
-                אין לידים עדיין
+                אין לידים בקטגוריה הזו
               </td>
             </tr>
           ) : (
-            leads.flatMap((l) => {
+            filtered.flatMap((l) => {
               const np = l.extra?.nlpearl;
               const isOpen = openId === l.id;
               const rows = [
                 <tr
                   key={l.id}
                   onClick={() => setOpenId(isOpen ? null : (l.id ?? null))}
-                  style={{ cursor: "pointer" }}
+                  style={{
+                    cursor: "pointer",
+                    opacity: l.consent ? 1 : 0.78,
+                    background: l.consent ? undefined : "rgba(248,113,113,0.04)",
+                  }}
                 >
                   <td style={{ fontSize: 12 }}>{formatDate(l.created_at)}</td>
                   <td><strong>{l.name}</strong></td>
                   <td dir="ltr" style={{ textAlign: "right", fontFamily: "ui-monospace, monospace" }}>
                     {l.phone}
                   </td>
+                  <td>{consentBadge(l.consent)}</td>
                   <td>{nlPearlBadge(np)}</td>
                   <td>
                     {l.variant_id ? (
@@ -69,31 +105,16 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
                       <span className="pill gray">-</span>
                     )}
                   </td>
-                  <td style={{ fontSize: 12, color: "#b8b8c4" }}>
-                    {[l.utm_source, l.utm_medium, l.utm_campaign].filter(Boolean).join(" / ") || "-"}
-                    {l.fbclid ? <div>fbclid: {String(l.fbclid).slice(0, 20)}…</div> : null}
-                    {l.gclid ? <div>gclid: {String(l.gclid).slice(0, 20)}…</div> : null}
-                  </td>
-                  <td
-                    style={{
-                      fontSize: 12,
-                      color: "#b8b8c4",
-                      maxWidth: 200,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                    title={l.referrer || ""}
-                  >
-                    {l.referrer || "-"}
+                  <td style={{ fontSize: 12, color: "#b8b8c4", maxWidth: 320 }}>
+                    <SourceCell lead={l} />
                   </td>
                 </tr>,
               ];
               if (isOpen) {
                 rows.push(
                   <tr key={`${l.id}-detail`}>
-                    <td colSpan={7} style={{ background: "#0a0a10", padding: 18 }}>
-                      <NlPearlDetail np={np} ip={l.ip} />
+                    <td colSpan={8} style={{ background: "#0a0a10", padding: 18 }}>
+                      <NlPearlDetail np={np} ip={l.ip} consent={l.consent} />
                     </td>
                   </tr>
                 );
@@ -104,6 +125,161 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
         </tbody>
       </table>
     </div>
+    </>
+  );
+}
+
+function FilterBtn({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: active ? "var(--brand, #ec4c6a)" : "rgba(255,255,255,0.06)",
+        color: active ? "#fff" : "#b8b8c4",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 10,
+        padding: "8px 14px",
+        fontSize: 13,
+        fontWeight: 700,
+        cursor: "pointer",
+        fontFamily: "inherit",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Renders a compact, structured source summary per lead. Pulls campaign /
+// adset / ad names from utm_* params (the standard naming Meta Ads Manager
+// uses when you turn on URL parameters), falls back to fbclid/gclid presence,
+// and shows the raw referrer + full landing URL on demand.
+function SourceCell({ lead }: { lead: Lead }) {
+  const source = inferSource(lead);
+  return (
+    <div style={{ display: "grid", gap: 2 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <span
+          className="pill"
+          style={{
+            background: source.color,
+            color: "#fff",
+            fontSize: 11,
+            padding: "2px 8px",
+          }}
+        >
+          {source.platform}
+        </span>
+        {source.campaign ? (
+          <span style={{ color: "#e8e8ee", fontWeight: 600 }}>
+            {source.campaign}
+          </span>
+        ) : null}
+      </div>
+      {source.ad ? <div>מודעה: {source.ad}</div> : null}
+      {source.medium && source.medium !== source.platform.toLowerCase() ? (
+        <div>medium: {source.medium}</div>
+      ) : null}
+      {lead.landing_url ? (
+        <a
+          href={lead.landing_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            color: "#7aa7ff",
+            fontSize: 11,
+            textDecoration: "underline",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            display: "block",
+            maxWidth: 320,
+          }}
+          title={lead.landing_url}
+        >
+          {lead.landing_url}
+        </a>
+      ) : null}
+      {lead.referrer ? (
+        <div
+          style={{
+            color: "#8b8b98",
+            fontSize: 11,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: 320,
+          }}
+          title={lead.referrer}
+        >
+          ← {lead.referrer}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function inferSource(l: Lead): {
+  platform: string;
+  color: string;
+  campaign?: string;
+  ad?: string;
+  medium?: string;
+} {
+  const us = (l.utm_source || "").toLowerCase();
+  const um = (l.utm_medium || "").toLowerCase();
+  const referrer = (l.referrer || "").toLowerCase();
+  const isMeta =
+    !!l.fbclid ||
+    us.includes("facebook") || us.includes("instagram") || us === "fb" || us === "ig" || us === "meta" ||
+    referrer.includes("facebook.com") || referrer.includes("instagram.com");
+  const isGoogle =
+    !!l.gclid || us.includes("google") || referrer.includes("google.");
+  let platform = l.utm_source || "ישיר";
+  let color = "rgba(255,255,255,0.12)";
+  if (isMeta) {
+    platform = us.includes("instagram") ? "Instagram" : "Meta";
+    color = "rgba(228, 64, 95, 0.55)";
+  } else if (isGoogle) {
+    platform = "Google";
+    color = "rgba(66, 133, 244, 0.55)";
+  } else if (us === "tiktok" || referrer.includes("tiktok")) {
+    platform = "TikTok";
+    color = "rgba(0, 0, 0, 0.55)";
+  } else if (us === "linkedin" || referrer.includes("linkedin")) {
+    platform = "LinkedIn";
+    color = "rgba(10, 102, 194, 0.55)";
+  } else if (!l.utm_source && !l.referrer) {
+    platform = "ישיר";
+  }
+  return {
+    platform,
+    color,
+    campaign: l.utm_campaign || undefined,
+    ad: l.utm_content || l.utm_term || undefined,
+    medium: l.utm_medium || undefined,
+  };
+}
+
+function consentBadge(consent?: boolean) {
+  if (consent) return <span className="pill green">✓ אישר</span>;
+  return (
+    <span
+      className="pill"
+      style={{ background: "rgba(248,113,113,0.18)", color: "#fca5a5" }}
+      title="המשתמש לא סימן את צ'קבוקס האישור בשלב 2 — לא בוצע חיוג"
+    >
+      נטש
+    </span>
   );
 }
 
@@ -130,11 +306,26 @@ function nlPearlBadge(np: any) {
   );
 }
 
-function NlPearlDetail({ np, ip }: { np: any; ip?: string | null }) {
+function NlPearlDetail({
+  np,
+  ip,
+  consent,
+}: {
+  np: any;
+  ip?: string | null;
+  consent?: boolean;
+}) {
   if (!np) {
     return (
       <div style={{ fontSize: 13, color: "#8b8b98" }}>
-        לא נרשמה קריאה ל-NLPearl לליד הזה (אולי נוצר לפני שהאינטגרציה עלתה).
+        {consent === false ? (
+          <div style={{ color: "#fca5a5", marginBottom: 8 }}>
+            ⚠️ המשתמש מילא שם וטלפון אבל לא אישר את ההצהרה בשלב 2. לא בוצע חיוג
+            אוטומטי — אם רוצים לפנות, צריך להתקשר ידנית.
+          </div>
+        ) : (
+          "לא נרשמה קריאה ל-NLPearl לליד הזה (אולי נוצר לפני שהאינטגרציה עלתה)."
+        )}
         {ip ? <div style={{ marginTop: 6 }}>IP: {ip}</div> : null}
       </div>
     );

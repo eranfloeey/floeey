@@ -68,6 +68,10 @@ export async function ensureSchema() {
     ip           TEXT,
     extra        JSONB
   )`;
+  // Track whether the user finished the second step (privacy consent). A lead
+  // saved at step-1 has consent=false → abandoned, no calling / webhooks fired.
+  await vsql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS consent BOOLEAN NOT NULL DEFAULT FALSE`;
+  await vsql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS consent_at TIMESTAMPTZ`;
   await vsql`CREATE TABLE IF NOT EXISTS variants (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,
@@ -136,27 +140,58 @@ export type Lead = {
   user_agent?: string | null;
   ip?: string | null;
   extra?: any;
+  consent?: boolean;
+  consent_at?: string | null;
 };
 
 export async function insertLead(l: Lead): Promise<number | null> {
+  const consent = !!l.consent;
   if (HAS_PG) {
     await ensureSchema();
     const r = await vsql`INSERT INTO leads (
       name, phone, variant_id, referrer, landing_url,
       utm_source, utm_medium, utm_campaign, utm_term, utm_content,
-      fbclid, gclid, user_agent, ip, extra
+      fbclid, gclid, user_agent, ip, extra, consent, consent_at
     ) VALUES (
       ${l.name}, ${l.phone}, ${l.variant_id ?? null}, ${l.referrer ?? null}, ${l.landing_url ?? null},
       ${l.utm_source ?? null}, ${l.utm_medium ?? null}, ${l.utm_campaign ?? null}, ${l.utm_term ?? null}, ${l.utm_content ?? null},
-      ${l.fbclid ?? null}, ${l.gclid ?? null}, ${l.user_agent ?? null}, ${l.ip ?? null}, ${JSON.stringify(l.extra ?? {})}::jsonb
+      ${l.fbclid ?? null}, ${l.gclid ?? null}, ${l.user_agent ?? null}, ${l.ip ?? null}, ${JSON.stringify(l.extra ?? {})}::jsonb,
+      ${consent}, ${consent ? new Date().toISOString() : null}
     ) RETURNING id`;
     return (r.rows[0] as any)?.id ?? null;
   }
   const d = await loadLocal();
   const id = Date.now();
-  d.leads.unshift({ ...l, id, created_at: new Date().toISOString() });
+  d.leads.unshift({
+    ...l,
+    id,
+    created_at: new Date().toISOString(),
+    consent,
+    consent_at: consent ? new Date().toISOString() : null,
+  });
   await saveLocal(d);
   return id;
+}
+
+// Marks a previously-saved (step-1) lead as fully consented. Returns the lead
+// row if found and was not already consented, else null.
+export async function markLeadConsent(id: number): Promise<Lead | null> {
+  if (HAS_PG) {
+    await ensureSchema();
+    const r = await vsql`UPDATE leads
+      SET consent = TRUE, consent_at = NOW()
+      WHERE id = ${id} AND consent = FALSE
+      RETURNING *`;
+    return (r.rows[0] as any) ?? null;
+  }
+  const d = await loadLocal();
+  const i = d.leads.findIndex((x: any) => x.id === id);
+  if (i < 0) return null;
+  if (d.leads[i].consent) return null;
+  d.leads[i].consent = true;
+  d.leads[i].consent_at = new Date().toISOString();
+  await saveLocal(d);
+  return d.leads[i];
 }
 
 export async function listLeads(limit = 200): Promise<Lead[]> {

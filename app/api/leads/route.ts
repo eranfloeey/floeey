@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { insertLead, updateLeadExtra } from "@/lib/db";
+import { insertLead, updateLeadExtra, markLeadConsent } from "@/lib/db";
 import { fireWebhooks } from "@/lib/webhooks";
 import { notifyNlpearl } from "@/lib/nlpearl";
 import { normalizeIsraeliPhone } from "@/lib/phone";
@@ -47,18 +47,31 @@ export async function POST(req: NextRequest) {
       ip,
     };
 
-    // Save the lead FIRST, before any external calls. If the database insert
-    // fails the request fails loudly (500) so the user sees a real error
-    // instead of an opaque "done" state.
-    let leadId: number | null;
-    try {
-      leadId = await insertLead(lead);
-    } catch (e: any) {
-      console.error("insertLead failed", e);
-      return NextResponse.json(
-        { ok: false, error: "db_insert_failed", message: e?.message || "save failed" },
-        { status: 500 }
-      );
+    // If the client has a partial lead_id from step 1, upgrade that row to
+    // consented=true instead of inserting a new one. This avoids duplicate
+    // rows in the admin (one "abandoned" + one "consented" for the same user).
+    // Falls through to a fresh insert if the partial row can't be found.
+    let leadId: number | null = null;
+    const partialId = Number(body.lead_id);
+    if (Number.isFinite(partialId) && partialId > 0) {
+      try {
+        const upgraded = await markLeadConsent(partialId);
+        if (upgraded) leadId = partialId;
+      } catch (e) {
+        console.error("markLeadConsent failed", e);
+      }
+    }
+
+    if (leadId == null) {
+      try {
+        leadId = await insertLead({ ...lead, consent: true });
+      } catch (e: any) {
+        console.error("insertLead failed", e);
+        return NextResponse.json(
+          { ok: false, error: "db_insert_failed", message: e?.message || "save failed" },
+          { status: 500 }
+        );
+      }
     }
 
     // Fire NLPearl outbound. The full request + response is captured and

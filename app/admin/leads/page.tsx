@@ -46,7 +46,8 @@ export default async function LeadsPage() {
         ) : null}
         <p className="muted">
           {leads.length} לידים בסה"כ · לחץ על שורה כדי לראות את הקריאה ל-NLPearl
-          (מה נשלח ומה הוחזר).
+          (מה נשלח ומה הוחזר). &quot;נטש&quot; = מילא פרטים אבל לא אישר את ההצהרה בשלב 2 —
+          לא בוצע חיוג, אפשר לפנות ידנית.
         </p>
         <LeadsTable leads={leads} />
       </main>

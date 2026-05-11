@@ -20,6 +20,7 @@ export default function LeadModal({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [consent, setConsent] = useState(false);
+  const [partialLeadId, setPartialLeadId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -40,40 +41,14 @@ export default function LeadModal({
       setError(null);
       setSubmitting(false);
       setDone(false);
+      setPartialLeadId(null);
     }
   }, [open]);
 
-  if (!open) return null;
-
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (submitting) return;
-    setError(null);
-
-    if (step === 1) {
-      const trimmedName = name.trim();
-      const trimmedPhone = phone.trim();
-      if (!trimmedName) {
-        setError("נא להזין שם");
-        return;
-      }
-      if (!isValidIsraeliPhone(trimmedPhone)) {
-        setError("מספר טלפון ישראלי לא תקין. למשל: 054-123-4567");
-        return;
-      }
-      setStep(2);
-      return;
-    }
-
-    if (!consent) {
-      setError("יש לאשר את ההצהרה כדי להמשיך");
-      return;
-    }
-
-    setSubmitting(true);
+  // Build the payload shared between the partial step-1 save and the final
+  // submit. Kept here so utm/tracking params get attached consistently in both.
+  function buildPayload() {
     const payload: Record<string, string> = {
-      // Identifies which form sent the lead. Used by /api/admin/webhooks to
-      // route per-form webhooks; new forms should pick their own form_id.
       form_id: "main",
       name: name.trim(),
       phone: phone.trim(),
@@ -94,6 +69,54 @@ export default function LeadModal({
       const v = sp.get(k);
       if (v) payload[k] = v;
     });
+    return payload;
+  }
+
+  if (!open) return null;
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (submitting) return;
+    setError(null);
+
+    if (step === 1) {
+      const trimmedName = name.trim();
+      const trimmedPhone = phone.trim();
+      if (!trimmedName) {
+        setError("נא להזין שם");
+        return;
+      }
+      if (!isValidIsraeliPhone(trimmedPhone)) {
+        setError("מספר טלפון ישראלי לא תקין. למשל: 054-123-4567");
+        return;
+      }
+      setStep(2);
+      // Fire-and-forget: save an "abandoned" lead at step 1 so the operator
+      // can see people who entered details but didn't tick the consent box.
+      // No NLPearl / webhook firing — that only happens at step 2.
+      fetch("/api/leads/partial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload()),
+      })
+        .then((r) => r.json().catch(() => ({})))
+        .then((d) => {
+          if (d?.lead_id) setPartialLeadId(Number(d.lead_id));
+        })
+        .catch(() => {});
+      return;
+    }
+
+    if (!consent) {
+      setError("יש לאשר את ההצהרה כדי להמשיך");
+      return;
+    }
+
+    setSubmitting(true);
+    const payload: Record<string, string | number> = buildPayload();
+    // Upgrade the step-1 row instead of creating a duplicate. If the partial
+    // POST is still in flight or failed, the server falls back to insert.
+    if (partialLeadId != null) payload.lead_id = partialLeadId;
     try {
       const res = await fetch("/api/leads", {
         method: "POST",
