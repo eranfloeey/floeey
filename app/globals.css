@@ -1388,8 +1388,8 @@ footer {
 .consent-label {
   display: block;
   position: relative;
-  padding-inline-start: 0;
-  padding-inline-end: 32px;
+  padding-inline-start: 32px;
+  padding-inline-end: 0;
   cursor: pointer;
   text-align: right;
   font-size: 11.5px;
@@ -1413,7 +1413,7 @@ footer {
   font-size: 0;
   line-height: 0;
   position: absolute;
-  inset-inline-end: 0;
+  inset-inline-start: 0;
   top: 3px;
 }
 .consent-label input[type="checkbox"]:hover {
