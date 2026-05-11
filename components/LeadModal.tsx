@@ -16,6 +16,10 @@ export default function LeadModal({
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [consent, setConsent] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -29,20 +33,40 @@ export default function LeadModal({
     };
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!open) {
+      setStep(1);
+      setConsent(false);
+      setError(null);
+      setSubmitting(false);
+      setDone(false);
+    }
+  }, [open]);
+
   if (!open) return null;
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (submitting) return;
     setError(null);
-    const fd = new FormData(e.currentTarget);
-    const name = String(fd.get("name") || "").trim();
-    const phone = String(fd.get("phone") || "").trim();
 
-    // Client-side validation: only valid Israeli phones (mobile or landline)
-    // make it as far as the API. Saves a roundtrip and gives instant feedback.
-    if (!isValidIsraeliPhone(phone)) {
-      setError("מספר טלפון ישראלי לא תקין. למשל: 054-123-4567");
+    if (step === 1) {
+      const trimmedName = name.trim();
+      const trimmedPhone = phone.trim();
+      if (!trimmedName) {
+        setError("נא להזין שם");
+        return;
+      }
+      if (!isValidIsraeliPhone(trimmedPhone)) {
+        setError("מספר טלפון ישראלי לא תקין. למשל: 054-123-4567");
+        return;
+      }
+      setStep(2);
+      return;
+    }
+
+    if (!consent) {
+      setError("יש לאשר את ההצהרה כדי להמשיך");
       return;
     }
 
@@ -51,8 +75,8 @@ export default function LeadModal({
       // Identifies which form sent the lead. Used by /api/admin/webhooks to
       // route per-form webhooks; new forms should pick their own form_id.
       form_id: "main",
-      name,
-      phone,
+      name: name.trim(),
+      phone: phone.trim(),
       variant_id: variantId,
       landing_url: typeof window !== "undefined" ? window.location.href : "",
       referrer: typeof document !== "undefined" ? document.referrer : "",
@@ -127,49 +151,76 @@ export default function LeadModal({
           <p className="small">זה לא איום. זו הבטחה.</p>
 
           <form id="leadForm" onSubmit={submit}>
-            <div className="field">
-              <svg
-                className="field-icon"
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
-              </svg>
-              <input
-                ref={inputRef}
-                id="name"
-                name="name"
-                type="text"
-                placeholder="השם שלך"
-                aria-label="שם מלא"
-                required
-              />
-            </div>
+            {step === 1 ? (
+              <>
+                <div className="field">
+                  <svg
+                    className="field-icon"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
+                  </svg>
+                  <input
+                    ref={inputRef}
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="השם שלך"
+                    aria-label="שם מלא"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
 
-            <div className="field">
-              <svg
-                className="field-icon"
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z" />
-              </svg>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                inputMode="tel"
-                placeholder="המספר שלך"
-                aria-label="מספר טלפון"
-                required
-              />
-            </div>
+                <div className="field">
+                  <svg
+                    className="field-icon"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z" />
+                  </svg>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="המספר שלך"
+                    aria-label="מספר טלפון"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="consent-step">
+                <label className="consent-label">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    aria-label="אישור הצהרה"
+                  />
+                  <span>
+                    אני מאשר/ת כי ידוע לי ומוסכם עלי כי הפרטים שמסרתי ייאספו, יוחזקו ויעובדו במאגר מידע בהתאם להוראות חוק הגנת הפרטיות,
+                    התשמ&quot;א–1981 (כולל תיקון 13), ולמטרות המפורטות{" "}
+                    <a href="/terms?tab=privacy" target="_blank" rel="noopener noreferrer">
+                      במדיניות הפרטיות של האתר
+                    </a>
+                    . ידוע לי כי מסירת המידע נעשית מרצוני החופשי, וכי עומדות לי הזכויות המוקנות לי לפי החוק.
+                  </span>
+                </label>
+              </div>
+            )}
 
             {error ? (
               <p className="lead-error" role="alert" style={{

@@ -1281,3 +1281,142 @@ footer {
   .thanks-art img,
   .thanks-art::before { animation: none; }
 }
+
+/* ===== Terms page ===== */
+.terms-page {
+  position: relative;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  padding: 80px 0 80px;
+}
+.terms-glow {
+  position: absolute; top: -200px; right: -200px;
+  width: 700px; height: 700px;
+  border-radius: 50%;
+  background: rgba(236, 76, 106, 0.18);
+  filter: blur(150px);
+  pointer-events: none;
+}
+.terms-container {
+  position: relative; z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.terms-h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 800;
+  margin: 0 0 24px;
+}
+.terms-tabs {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-bottom: 24px;
+}
+.terms-tab {
+  border: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 700; font-size: 15px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  font-family: inherit;
+}
+.terms-tab:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.terms-tab.is-active {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 12px 28px -12px rgba(236, 76, 106, 0.55);
+}
+.terms-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 32px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.75;
+}
+.terms-card .terms-updated {
+  font-size: 13px; color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 18px;
+}
+.terms-section { margin-bottom: 24px; }
+.terms-section h2 {
+  font-size: 19px; font-weight: 800; color: #fff;
+  margin: 0 0 10px;
+}
+.terms-section p { margin: 0; }
+.terms-section p.mt-1 { margin-top: 4px; }
+.terms-section p.mt-2 { margin-top: 8px; }
+.terms-section p.mt-3 { margin-top: 12px; }
+.terms-section ul {
+  list-style: disc;
+  padding-inline-start: 22px;
+  margin: 8px 0 0;
+}
+.terms-section li { margin-bottom: 4px; }
+.terms-section a {
+  color: var(--brand-soft);
+  text-decoration: underline;
+}
+.terms-section a:hover { color: var(--brand); }
+.terms-section strong { color: #fff; font-weight: 800; }
+@media (max-width: 720px) {
+  .terms-page { padding: 60px 0 60px; }
+  .terms-card { padding: 22px 18px; border-radius: 18px; }
+  .terms-tab { padding: 10px 14px; font-size: 14px; }
+}
+
+/* ===== Consent step in lead modal ===== */
+.consent-step { text-align: right; }
+.consent-step h4 {
+  font-size: 18px; font-weight: 800; color: #fff;
+  margin: 0 0 8px;
+}
+.consent-label {
+  display: flex; gap: 10px; align-items: flex-start;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13.5px; line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  margin-bottom: 12px;
+}
+.consent-label input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 20px; height: 20px;
+  flex-shrink: 0; margin-top: 2px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 5px;
+  cursor: pointer;
+  background: transparent;
+  position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.consent-label input[type="checkbox"]:checked {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.consent-label input[type="checkbox"]:checked::after {
+  content: ""; position: absolute;
+  inset: 2px;
+  background: no-repeat center/contain
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><path d='M9 16.2l-3.5-3.6L4 14l5 5 11-11-1.4-1.4z'/></svg>");
+}
+.consent-label a { color: var(--brand-soft); text-decoration: underline; }
+.consent-label a:hover { color: var(--brand); }
+.consent-back {
+  background: none; border: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px; cursor: pointer;
+  padding: 8px 0; margin-top: 4px;
+  font-family: inherit;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.consent-back:hover { color: #fff; }
