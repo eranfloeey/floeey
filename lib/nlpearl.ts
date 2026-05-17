@@ -18,7 +18,10 @@ const TIMEOUT_MS = 8000;
 
 export type NlpearlResult = {
   url: string;
-  request: { phoneNumber: string; callData: { customerName: string } };
+  request: {
+    phoneNumber: string;
+    callData: { customerName: string; email?: string };
+  };
   status: number | null;
   response_body: string | null;
   error: string | null;
@@ -29,12 +32,21 @@ export type NlpearlResult = {
 
 // Phone is expected to already be in E.164 form (validated upstream by lib/phone).
 // We still pass it through unchanged so even legacy raw input gets sent to
-// NLPearl rather than dropped.
-export async function notifyNlpearl(lead: { name: string; phone: string }): Promise<NlpearlResult> {
+// NLPearl rather than dropped. Email is passed in callData so the voice agent
+// (and any NLPearl-side automation) can use it when a meeting gets booked.
+export async function notifyNlpearl(lead: {
+  name: string;
+  phone: string;
+  email?: string | null;
+}): Promise<NlpearlResult> {
   const sentAt = new Date().toISOString();
+  const callData: { customerName: string; email?: string } = {
+    customerName: lead.name || "",
+  };
+  if (lead.email) callData.email = lead.email;
   const requestBody = {
     phoneNumber: lead.phone,
-    callData: { customerName: lead.name || "" },
+    callData,
   };
 
   const started = Date.now();

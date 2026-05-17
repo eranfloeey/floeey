@@ -166,6 +166,7 @@ export async function fireWebhookTest(id: number): Promise<{ ok: boolean; status
   const sampleLead = {
     name: "Test User",
     phone: "0501234567",
+    email: "test@example.com",
     variant_id: "control",
     landing_url: "https://floeey.test/",
     utm_source: "test",

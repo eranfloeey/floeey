@@ -78,7 +78,11 @@ export async function POST(req: NextRequest) {
     // Fire NLPearl outbound. The full request + response is captured and
     // stitched onto the lead row's `extra` field so the admin can audit
     // exactly what was sent and what came back per lead.
-    const nlpearl = await notifyNlpearl({ name: lead.name, phone: lead.phone });
+    const nlpearl = await notifyNlpearl({
+      name: lead.name,
+      phone: lead.phone,
+      email: lead.email,
+    });
     try {
       if (leadId != null) await updateLeadExtra(leadId, { nlpearl });
     } catch (e) {
