@@ -19,6 +19,7 @@ export default function LeadModal({
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [partialLeadId, setPartialLeadId] = useState<number | null>(null);
 
@@ -42,6 +43,7 @@ export default function LeadModal({
       setSubmitting(false);
       setDone(false);
       setPartialLeadId(null);
+      setEmail("");
     }
   }, [open]);
 
@@ -52,6 +54,7 @@ export default function LeadModal({
       form_id: "main",
       name: name.trim(),
       phone: phone.trim(),
+      email: email.trim(),
       variant_id: variantId,
       landing_url: typeof window !== "undefined" ? window.location.href : "",
       referrer: typeof document !== "undefined" ? document.referrer : "",
@@ -88,6 +91,11 @@ export default function LeadModal({
       }
       if (!isValidIsraeliPhone(trimmedPhone)) {
         setError("מספר טלפון ישראלי לא תקין. למשל: 054-123-4567");
+        return;
+      }
+      const trimmedEmail = email.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+        setError("כתובת אימייל לא תקינה");
         return;
       }
       setStep(2);
@@ -220,6 +228,30 @@ export default function LeadModal({
                     aria-label="מספר טלפון"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="field">
+                  <svg
+                    className="field-icon"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 2v.5l8 5 8-5V6H4zm16 12V8.9l-7.4 4.6a1 1 0 0 1-1.2 0L4 8.9V18h16z" />
+                  </svg>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    inputMode="email"
+                    placeholder="כתובת אימייל (רק למקרה שנקבע פגישה)"
+                    aria-label="כתובת אימייל"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>

@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
     const lead = {
       name: String(body.name).trim(),
       phone: phoneE164,
+      email: body.email ? String(body.email).trim() : null,
       variant_id: body.variant_id ?? null,
       referrer: body.referrer ?? null,
       landing_url: body.landing_url ?? null,

@@ -7,6 +7,7 @@ type Lead = {
   created_at?: string;
   name?: string;
   phone?: string;
+  email?: string | null;
   variant_id?: string | null;
   utm_source?: string | null;
   utm_medium?: string | null;
@@ -64,6 +65,7 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
             <th>תאריך</th>
             <th>שם</th>
             <th>טלפון</th>
+            <th>אימייל</th>
             <th>הצהרה</th>
             <th>NLPearl</th>
             <th>וריאנט</th>
@@ -73,7 +75,7 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
         <tbody>
           {filtered.length === 0 ? (
             <tr>
-              <td colSpan={7} style={{ textAlign: "center", padding: 40, color: "#8b8b98" }}>
+              <td colSpan={8} style={{ textAlign: "center", padding: 40, color: "#8b8b98" }}>
                 אין לידים בקטגוריה הזו
               </td>
             </tr>
@@ -95,6 +97,19 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
                   <td><strong>{l.name}</strong></td>
                   <td dir="ltr" style={{ textAlign: "right", fontFamily: "ui-monospace, monospace" }}>
                     {l.phone}
+                  </td>
+                  <td dir="ltr" style={{ textAlign: "right", fontSize: 12 }}>
+                    {l.email ? (
+                      <a
+                        href={`mailto:${l.email}`}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: "#7aa7ff", textDecoration: "underline" }}
+                      >
+                        {l.email}
+                      </a>
+                    ) : (
+                      <span style={{ color: "#8b8b98" }}>-</span>
+                    )}
                   </td>
                   <td>{consentBadge(l.consent)}</td>
                   <td>{nlPearlBadge(np)}</td>

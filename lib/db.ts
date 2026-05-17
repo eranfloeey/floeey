@@ -72,6 +72,7 @@ export async function ensureSchema() {
   // saved at step-1 has consent=false → abandoned, no calling / webhooks fired.
   await vsql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS consent BOOLEAN NOT NULL DEFAULT FALSE`;
   await vsql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS consent_at TIMESTAMPTZ`;
+  await vsql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email TEXT`;
   await vsql`CREATE TABLE IF NOT EXISTS variants (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,
@@ -127,6 +128,7 @@ export type Lead = {
   created_at?: string;
   name: string;
   phone: string;
+  email?: string | null;
   variant_id?: string | null;
   referrer?: string | null;
   landing_url?: string | null;
@@ -149,11 +151,11 @@ export async function insertLead(l: Lead): Promise<number | null> {
   if (HAS_PG) {
     await ensureSchema();
     const r = await vsql`INSERT INTO leads (
-      name, phone, variant_id, referrer, landing_url,
+      name, phone, email, variant_id, referrer, landing_url,
       utm_source, utm_medium, utm_campaign, utm_term, utm_content,
       fbclid, gclid, user_agent, ip, extra, consent, consent_at
     ) VALUES (
-      ${l.name}, ${l.phone}, ${l.variant_id ?? null}, ${l.referrer ?? null}, ${l.landing_url ?? null},
+      ${l.name}, ${l.phone}, ${l.email ?? null}, ${l.variant_id ?? null}, ${l.referrer ?? null}, ${l.landing_url ?? null},
       ${l.utm_source ?? null}, ${l.utm_medium ?? null}, ${l.utm_campaign ?? null}, ${l.utm_term ?? null}, ${l.utm_content ?? null},
       ${l.fbclid ?? null}, ${l.gclid ?? null}, ${l.user_agent ?? null}, ${l.ip ?? null}, ${JSON.stringify(l.extra ?? {})}::jsonb,
       ${consent}, ${consent ? new Date().toISOString() : null}
